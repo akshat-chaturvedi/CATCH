@@ -6,13 +6,13 @@
 
 ## Overview
 
-`CATCH` is a Python3 module which allows an observer to rapidly search for and verify calibrator stars for interferometric observations carried out at the [Center for High Angular Resolution Astronomy (CHARA) Array](https://chara.gsu.edu) with the **MIRC-X** (_H_-band) and **MYSTIC** (_K_-band) instruments. Future support for other instruments at the Array is under development. 
+`CATCH` is a Python3 program which allows an observer to rapidly search for and verify calibrator stars for interferometric observations carried out at the [Center for High Angular Resolution Astronomy (CHARA) Array](https://chara.gsu.edu) with the **MIRC-X** (_H_-band) and **MYSTIC** (_K_-band) instruments. Future support for other instruments at the Array is under development. 
 
 Viable stars need to meet certain requirements to work accurately as calibrators:
-- They need to be bright (i.e. V<sub>mag</sub> < 9.0, 3.9 < H<sub>mag</sub> < 6.4)
+- They need to be bright (i.e. V<sub>mag</sub> < 9.0, H<sub>mag</sub> < 6.4)
 - Their angular diameters need to be relatively small (UDD<sub>H</sub> < 0.4)
 - They <b>MUST NOT</b> be binaries
-- They <b>MUST NOT</b> be rapid rotators (Vsini < 100 km/s)
+- They <b>MUST NOT</b> be rapid rotators (V•sin(i) < 100 km/s)
 - They shouldn't have significant IR excesses
 - They ideally shouldn't have close field companions
 - They must be within the CHARA Array's declination limit

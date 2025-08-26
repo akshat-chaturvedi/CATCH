@@ -52,13 +52,16 @@ def cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> No
         exit("This star is outside the declination limits (DEC > -25) for the CHARA Array!")
 
     print(f"Beginning calibration search for target: {YELLOW}{star_name}{RESET}")
-    # Check with JMMC Stellar Diameters Catalogue (Vmag < 9.0, 3.9 < Hmag < 6.4, UDDH < 0.4, SpType = GKM)
+    # Check with JMMC Stellar Diameters Catalogue (Vmag < 9.0, Hmag < 6.4, UDDH < 0.4, SpType = GKM)
     vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "SpType", "Vmag", "Rmag","Hmag", "Kmag", "UDDH", "UDDK",
                              "+_r"], catalog="II/346/jsdc_v2")
 
+    # The default vizier query row limit is set here to 100. If you would like to search for more, increase this number
+    # NOTE: Increasing it will increase run-time
     vizier.ROW_LIMIT = 100
     print(f"-->Querying {BLUE}JMMC Stellar Diameters Catalogue{RESET}...")
-    jmmc_result = vizier.query_region(f"{star_name}", radius="10d", column_filters={"Vmag":"<9.0", "Hmag":"3.9 .. 6.4",
+    # By default, CATCH queries the JMMC catalog for stars within 10 degrees, but it can be increased as required
+    jmmc_result = vizier.query_region(f"{star_name}", radius="10d", column_filters={"Vmag":"<9.0", "Hmag":"<6.4",
                                                                            "UDDH": "<0.4", "_DEJ2000": ">-25"})[0]
     print(f"-->{GREEN}Query complete!{RESET}")
     # Cross-check with Gaia DR3 catalogue for IPDfmp (<2), RUWE (<1.4), RVamp, and Vbroad<100 binarity and rapid
@@ -66,6 +69,10 @@ def cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> No
     vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "IPDfmp", "RUWE", "RVamp", "Vbroad", "+_r"],
                     catalog="I/355/gaiadr3")
     print(f"-->Querying {BLUE}Gaia DR3 Catalogue{RESET}...")
+    # The default vizier request times out at 60 seconds. You usually will not hit this limit at a row limit of 100, but
+    # if you increased the row limit above, uncomment the following line and increase the timeout to a larger number.
+    # WARNING: Doing this, depending on how much you increased the row limit by, can crash the program!!
+    # vizier.TIMEOUT = 120
     gaia_result = vizier.query_region(jmmc_result, radius="10s", column_filters={"IPDfmp": "<2", "RUWE": "<1.4",
                                                                            "Vbroad": "<100"})[0]
     print(f"-->{GREEN}Query complete!{RESET}")
@@ -168,7 +175,7 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
     check_pass_count = init_check_pass_count
 
     print(f"Checking calibrator viability of: {YELLOW}{calibrator_name}{RESET}")
-    # Check with JMMC Stellar Diameters Catalogue (Vmag < 9.0, 3.9 < Hmag < 6.4, UDDH < 0.4, SpType = GKM)
+    # Check with JMMC Stellar Diameters Catalogue (Vmag < 9.0, Hmag < 6.4, UDDH < 0.4, SpType = GKM)
     vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "SpType", "Vmag", "Rmag", "Hmag", "Kmag", "UDDH", "UDDK",
                              "+_r"], catalog="II/346/jsdc_v2")
 
@@ -178,8 +185,7 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
     print(f"-->{GREEN}Query complete!{RESET}")
 
     if jmmc_result:
-        if ((jmmc_result['Vmag'] > 9) | (jmmc_result['Hmag'] < 3.9) | (jmmc_result['Hmag'] > 6.4) |
-                (jmmc_result['UDDH'] > 0.5)):
+        if (jmmc_result['Vmag'] > 9) |  (jmmc_result['Hmag'] > 6.4) | (jmmc_result['UDDH'] > 0.5):
             print(f"-->{RED}{calibrator_name} fails JMMC Stellar Diameters Catalogue checks!{RESET}")
             check_pass_count -= 1
         else:
@@ -194,10 +200,13 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
     vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "IPDfmp", "RUWE", "RVamp", "Vbroad", "+_r"],
                     catalog="I/355/gaiadr3")
     print(f"-->Querying {BLUE}Gaia DR3 Catalogue{RESET}...")
-    gaia_result = vizier.query_region(f"{calibrator_name}", radius="10s")[0]
-    print(f"-->{GREEN}Query complete!{RESET}")
+    gaia_result = vizier.query_region(f"{calibrator_name}", radius="10s")
+
+    if len(gaia_result) == 0:
+        exit(f"ERROR: {calibrator_name} not found in Gaia DR3!")
 
     if len(gaia_result) > 1:
+        print(f"-->{GREEN}Query complete!{RESET}")
         print(f"-->{RED}Warning: Potential calibrator has Gaia DR3 companions within 5\"{RESET}")
         if gaia_comp_check:
             check_pass_count -= 1
@@ -251,7 +260,7 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
         print(f"Confirmed {YELLOW}{calibrator_name}{RESET} is a viable calibrator in {round(t2 - t1, 2)} seconds!")
     else:
         print(f"-->{YELLOW}{calibrator_name}{RESET} passed {RED}{check_pass_count}/{init_check_pass_count}{RESET} checks")
-        print(f"{YELLOW}{calibrator_name}{RESET} {RED}may not be a viable calibrator!{RESET}\n")
+        print(f"{YELLOW}{calibrator_name}{RESET} {RED}is unlikely to be a viable calibrator!{RESET}\n")
         print("We recommend submitting this star to the JMMC Bad Calibrators Database: https://www.jmmc.fr/badcal/")
 
     return
