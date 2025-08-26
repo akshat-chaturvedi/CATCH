@@ -204,19 +204,23 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
 
     if len(gaia_result) == 0:
         exit(f"ERROR: {calibrator_name} not found in Gaia DR3!")
-
-    if len(gaia_result) > 1:
-        print(f"-->{GREEN}Query complete!{RESET}")
-        print(f"-->{RED}Warning: Potential calibrator has Gaia DR3 companions within 5\"{RESET}")
-        if gaia_comp_check:
-            check_pass_count -= 1
-
-    if ((gaia_result[0]['IPDfmp'] > 2) | (gaia_result[0]['RUWE'] > 1.4) |
-            ((gaia_result[0]['Vbroad'] is not np.ma.masked) and (gaia_result[0]['Vbroad'] > 100))):
-        print(f"-->{RED}{calibrator_name} fails Gaia DR3 Catalogue checks!{RESET}")
-        check_pass_count -= 1
     else:
-        pass
+        gaia_result = gaia_result[0]
+        if len(gaia_result[0]) > 1:
+            print(f"-->{GREEN}Query complete!{RESET}")
+            print(f"-->{RED}Warning: Potential calibrator has Gaia DR3 companions within 10\"{RESET}")
+            if gaia_comp_check:
+                check_pass_count -= 1
+
+        if (((gaia_result[0]['IPDfmp'] is not np.ma.masked) and (gaia_result[0]['IPDfmp'] > 2)) |
+                ((gaia_result[0]['RUWE'] is not np.ma.masked) and (gaia_result[0]['RUWE'] > 1.4)) |
+                ((gaia_result[0]['Vbroad'] is not np.ma.masked) and (gaia_result[0]['Vbroad'] > 100))):
+            print(f"-->{RED}{calibrator_name} fails Gaia DR3 Catalogue checks!{RESET}")
+            check_pass_count -= 1
+            if gaia_result[0]['Vbroad'] > 100:
+                check_pass_count -= 5
+        else:
+            pass
 
     # Cross-check with Kervella catalogue for binarity (should all be 0)
     vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "DMS", "W", "BinH", "BinG2"], catalog="J/A+A/623/A72")
@@ -227,7 +231,7 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
         if ((kervella_result[0]['DMS'] != 0) | (kervella_result[0]['W'] != 0) | (kervella_result[0]['BinH'] != 0)
                 | kervella_result[0]['BinG2'] != 0):
             print(f"-->{RED}{calibrator_name} fails Kervella et al. 2019 Catalogue checks!{RESET}")
-            check_pass_count -= 1
+            check_pass_count -= 5
         else:
             pass
 
@@ -255,11 +259,10 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
               f"Check against other catalogues!{RESET}")
 
     t2 = time.perf_counter()
-    if check_pass_count == init_check_pass_count:
+    if check_pass_count / init_check_pass_count > 0.7:
         print(f"-->{YELLOW}{calibrator_name}{RESET} passed {GREEN}{check_pass_count}/{init_check_pass_count}{RESET} checks")
-        print(f"Confirmed {YELLOW}{calibrator_name}{RESET} is a viable calibrator in {round(t2 - t1, 2)} seconds!")
+        print(f"Confirmed {YELLOW}{calibrator_name}{RESET} is likely a viable calibrator in {round(t2 - t1, 2)} seconds!")
     else:
-        print(f"-->{YELLOW}{calibrator_name}{RESET} passed {RED}{check_pass_count}/{init_check_pass_count}{RESET} checks")
         print(f"{YELLOW}{calibrator_name}{RESET} {RED}is unlikely to be a viable calibrator!{RESET}\n")
         print("We recommend submitting this star to the JMMC Bad Calibrators Database: https://www.jmmc.fr/badcal/")
 
