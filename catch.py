@@ -300,9 +300,9 @@ if __name__ == '__main__':
     print(
         f"""
         ############################ This is {RED}C{RESET}{GREEN}A{RESET}{YELLOW}T{RESET}{BLUE}C{RESET}{MAGENTA}H{RESET} ############################
-                      [{RED}C{RESET}]HARA [{GREEN}A{RESET}]rray's [{YELLOW}T{RESET}]hrifty [{BLUE}C{RESET}]alibrator [{MAGENTA}H{RESET}]unter
+                   [{RED}C{RESET}]HARA [{GREEN}A{RESET}]rray's [{YELLOW}T{RESET}]hrifty [{BLUE}C{RESET}]alibrator [{MAGENTA}H{RESET}]unter
                                  Version: {__version__}                           
-                       https://github.com/akshat-chaturvedi/CaliFinder                 
+                       https://github.com/akshat-chaturvedi/CATCH                 
         #######################################################################
         """
         )

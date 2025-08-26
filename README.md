@@ -6,49 +6,52 @@
 
 ## Overview
 
-`CATCH` is a Python3 module which allows an observer to rapidly search for and verify calibrator stars for interferometric observations carried out at the [Center for High Angular Resolution Astronomy (CHARA) Array](https://chara.gsu.edu).
+`CATCH` is a Python3 module which allows an observer to rapidly search for and verify calibrator stars for interferometric observations carried out at the [Center for High Angular Resolution Astronomy (CHARA) Array](https://chara.gsu.edu) with the **MIRC-X** (_H_-band) and **MYSTIC** (_K_-band) instruments. Future support for other instruments at the Array is under development. 
 
 Viable stars need to meet certain requirements to work accurately as calibrators:
 - They need to be bright (i.e. V<sub>mag</sub> < 9.0, 3.9 < H<sub>mag</sub> < 6.4)
 - Their angular diameters need to be relatively small (UDD<sub>H</sub> < 0.4)
 - They <b>MUST NOT</b> be binaries
-- They <b>MUST NOT</b> be rapid rotators
+- They <b>MUST NOT</b> be rapid rotators (Vsini < 100 km/s)
 - They shouldn't have significant IR excesses
 - They ideally shouldn't have close field companions
 - They must be within the CHARA Array's declination limit
 
 Potential calibrators are checked against a set of published catalogues and parameters therein to verify that they meet these requirements. These catalogues include:
 - [Jean-Marie Mariotti Center Stellar Diameters Catalogue v2](https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=II/346/jsdc_v2) to check brightness and angular diameters
-- [Gaia DR3](https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=I/355/gaiadr3) to check binarity and rapid rotation
-- [Kervella et al. 2019](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/623/A72) to check binarity
+- [Gaia DR3](https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=I/355/gaiadr3) to check multiplicity and rapid rotation
+- [Kervella et al. 2019](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/623/A72) to check multiplicity
 - [Cruzalebes et al. 2019](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=II/361) to check infrared excess
 
-CaliFinder has two main capabilities. It can generate a list of viable, cross-checked calibrator stars for a given science target, and it can verify a potential calibrator independently chosen by the user.
+`CATCH` has two main capabilities. It can generate a list of viable, cross-checked calibrator stars for a given science target, and it can verify a potential calibrator independently chosen by the user.
 
 ### Install with GitHub and UV
 
-The GitHub version is the most up-to-date. To install from the GitHub repository, first install uv using:
+The GitHub version is the most up-to-date. To install from the GitHub repository, first install `uv` using:
 ```
-pip install uv
+$ pip install uv
 ```
-You can then clone the repository and isntall CaliFinder using:
+You can then clone the repository and isntall `CATCH` using:
 ```
-git clone https://github.com/akshat-chaturvedi/CaliFinder.git
-uv sync
+$ git clone https://github.com/akshat-chaturvedi/CATCH.git
+``` 
+Then `cd` into the `CATCH` directory and use `uv sync` to ensure all dependencies match 
+``` 
+$ cd CATCH && uv sync
 ``` 
 
 ### Running the code
-You can either run the code using `uv run califinder.py` or with `python3 califinder.py`.
+You can either run the code using `uv run catch.py` or with `python3 catch.py`.
 
 ### Example Usage — Generating List of Verified Calibrators
 You can use the built-in `main` function (the default run case) as shown in the example below to generate a list of calibrators for a given science target. The calibrators are saved in an `ascii` file titled **star_name_Calibrators.txt**. 
 ```
-$ uv run califinder.py
+$ uv run catch.py
 
         ############################ This is CATCH ############################
-                      [C]HARA [A]rray's [T]hrifty [C]alibrator [H]unter
+                   [C]HARA [A]rray's [T]hrifty [C]alibrator [H]unter
                                  Version: 1.0 | 2025/08/26                           
-                       https://github.com/akshat-chaturvedi/CaliFinder                 
+                       https://github.com/akshat-chaturvedi/CATCH                 
         #######################################################################
         
 Would you like to find calibrators for a science target (type A), or check a possible calibrators viability (type B)?:
@@ -75,12 +78,12 @@ Found 17 viable calibrators in 3.99 seconds!
 ### Example Usage — Verifying a Provided Potential Calibrator
 You can use the built-in `main` function (the default run case) as shown in the example below to generate a list of calibrators for a given science target.
 ```
-$ uv run califinder.py
+$ uv run catch.py
 
         ############################ This is CATCH ############################
-                      [C]HARA [A]rray's [T]hrifty [C]alibrator [H]unter
+                   [C]HARA [A]rray's [T]hrifty [C]alibrator [H]unter
                                  Version: 1.0 | 2025/08/26                           
-                       https://github.com/akshat-chaturvedi/CaliFinder                 
+                       https://github.com/akshat-chaturvedi/CATCH                 
         #######################################################################
         
 Would you like to find calibrators for a science target (type A), or check a possible calibrators viability (type B)?:
@@ -104,10 +107,11 @@ Confirmed HD  30913 is a viable calibrator in 0.84 seconds!
 
 ### Dependencies
 
-The latest version of `CaliFinder` has been developed for:
+The latest version of `CATCH` has been developed for:
 - astropy>=5.2.2
 - astroquery>=0.4.7
 - numpy>=1.24.4
 
 ## Acknowledgments
-Banner background image: [The exotic stellar population of Westerlund 1 (ESA/Webb, NASA & CSA, M. Zamani (ESA/Webb), M. G. Guarcello (INAF-OAPA) and the EWOCS team)](https://esawebb.org/images/potm2409a/)
+- We would like to thank Becky Flores and Dr. Gail Schaefer at the CHARA Array for their expert guidance in determining the necessary criteria for calibrator determination (and all the observing help!)
+- Banner background image: [The exotic stellar population of Westerlund 1 (ESA/Webb, NASA & CSA, M. Zamani (ESA/Webb), M. G. Guarcello (INAF-OAPA) and the EWOCS team)](https://esawebb.org/images/potm2409a/)
