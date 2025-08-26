@@ -1,4 +1,4 @@
-![banner](Banner/CaliFinder_banner.png)
+![banner](Banner/CATCH_banner.png)
 
 [![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff)](https://www.python.org)
 [![numpy](https://img.shields.io/badge/NumPy-4DABCF?logo=numpy&logoColor=fff)](http://www.numpy.org/)
@@ -6,7 +6,7 @@
 
 ## Overview
 
-`CaliFinder` is a Python3 module which allows an observer to rapidly search for and verify calibrator stars for interferometric observations carried out at the [Center for High Angular Resolution Astronomy (CHARA) Array](https://chara.gsu.edu).
+`CATCH` is a Python3 module which allows an observer to rapidly search for and verify calibrator stars for interferometric observations carried out at the [Center for High Angular Resolution Astronomy (CHARA) Array](https://chara.gsu.edu).
 
 Viable stars need to meet certain requirements to work accurately as calibrators:
 - They need to be bright (i.e. V<sub>mag</sub> < 9.0, 3.9 < H<sub>mag</sub> < 6.4)
