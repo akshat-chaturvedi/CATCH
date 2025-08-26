@@ -18,7 +18,7 @@ RESET = '\033[0m'
 ITALIC = '\033[3m'
 BLINK = '\033[5m'
 
-__version__ = '0.1 | 2025/08/25' # Created main function to run everything
+__version__ = '1.0 | 2025/08/26' # First release version :)
 
 
 def cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> None:
@@ -194,7 +194,7 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
     vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "IPDfmp", "RUWE", "RVamp", "Vbroad", "+_r"],
                     catalog="I/355/gaiadr3")
     print(f"-->Querying {BLUE}Gaia DR3 Catalogue{RESET}...")
-    gaia_result = vizier.query_region(f"{calibrator_name}", radius="5s")[0]
+    gaia_result = vizier.query_region(f"{calibrator_name}", radius="10s")[0]
     print(f"-->{GREEN}Query complete!{RESET}")
 
     if len(gaia_result) > 1:
@@ -251,7 +251,7 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
         print(f"Confirmed {YELLOW}{calibrator_name}{RESET} is a viable calibrator in {round(t2 - t1, 2)} seconds!")
     else:
         print(f"-->{YELLOW}{calibrator_name}{RESET} passed {RED}{check_pass_count}/{init_check_pass_count}{RESET} checks")
-        print(f"{YELLOW}{calibrator_name}{RESET} {RED}is not a viable calibrator!{RESET}\n")
+        print(f"{YELLOW}{calibrator_name}{RESET} {RED}may not be a viable calibrator!{RESET}\n")
         print("We recommend submitting this star to the JMMC Bad Calibrators Database: https://www.jmmc.fr/badcal/")
 
     return
@@ -299,10 +299,11 @@ def main():
 if __name__ == '__main__':
     print(
         f"""
-        ############################ This is {RED}Ca{RESET}{GREEN}li{RESET}{YELLOW}Fi{RESET}{BLUE}nd{RESET}{MAGENTA}er{RESET} ############################
+        ############################ This is {RED}C{RESET}{GREEN}A{RESET}{YELLOW}T{RESET}{BLUE}C{RESET}{MAGENTA}H{RESET} ############################
+                      [{RED}C{RESET}]HARA [{GREEN}A{RESET}]rray's [{YELLOW}T{RESET}]hrifty [{BLUE}C{RESET}]alibrator [{MAGENTA}H{RESET}]unter
                                  Version: {__version__}                           
                        https://github.com/akshat-chaturvedi/CaliFinder                 
-        ############################################################################
+        #######################################################################
         """
         )
     main()

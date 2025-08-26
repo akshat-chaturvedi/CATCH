@@ -45,10 +45,11 @@ You can use the built-in `main` function (the default run case) as shown in the 
 ```
 $ uv run califinder.py
 
-        ############################ This is CaliFinder ############################
-                                 Version: 0.1 | 2025/08/25                           
+        ############################ This is CATCH ############################
+                      [C]HARA [A]rray's [T]hrifty [C]alibrator [H]unter
+                                 Version: 1.0 | 2025/08/26                           
                        https://github.com/akshat-chaturvedi/CaliFinder                 
-        ############################################################################
+        #######################################################################
         
 Would you like to find calibrators for a science target (type A), or check a possible calibrators viability (type B)?:
 A
@@ -76,10 +77,11 @@ You can use the built-in `main` function (the default run case) as shown in the 
 ```
 $ uv run califinder.py
 
-        ############################ This is CaliFinder ############################
-                                 Version: 0.1 | 2025/08/25                           
+        ############################ This is CATCH ############################
+                      [C]HARA [A]rray's [T]hrifty [C]alibrator [H]unter
+                                 Version: 1.0 | 2025/08/26                           
                        https://github.com/akshat-chaturvedi/CaliFinder                 
-        ############################################################################
+        #######################################################################
         
 Would you like to find calibrators for a science target (type A), or check a possible calibrators viability (type B)?:
 B
