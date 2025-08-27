@@ -53,7 +53,7 @@ def cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> No
         exit("This star is outside the declination limits (DEC > -25) for the CHARA Array!")
 
     print(f"Beginning calibration search for target: {YELLOW}{star_name}{RESET}")
-    # Check with JMMC Stellar Diameters Catalogue (Vmag < 9.0, Hmag < 6.4, UDDH < 0.4, SpType = GKM)
+    # Check with JMMC Stellar Diameters Catalogue (Vmag < 9.0, Hmag < 6.4, UDDH < 0.4)
     vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "SpType", "Vmag", "Rmag","Hmag", "Kmag", "UDDH", "UDDK",
                              "+_r"], catalog="II/346/jsdc_v2")
 
@@ -323,7 +323,7 @@ def main():
 
     elif main_question in ["B", "b"]:
         target_star_name = input("Please enter the name of your calibrator (preferably its HD number):\n")
-        gaia_question = input("Would you like to filter calibrators by whether it has a companion within 5\" in Gaia DR3 "
+        gaia_question = input("Would you like to filter calibrators by whether it has a companion within 10\" in Gaia DR3 "
                               "Y/[N]?\n").strip()
         if gaia_question in ["Y", "y"]:
             cal_checker(target_star_name, gaia_comp_check=True)
