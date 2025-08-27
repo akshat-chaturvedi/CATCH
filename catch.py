@@ -14,6 +14,7 @@ GREEN = '\033[92m'
 YELLOW = '\033[93m'
 BLUE = '\033[94m'
 MAGENTA = '\033[95m'
+ORANGE = '\033[38;2;255;128;0m'
 RESET = '\033[0m'
 ITALIC = '\033[3m'
 BLINK = '\033[5m'
@@ -61,7 +62,7 @@ def cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> No
     vizier.ROW_LIMIT = 100
     print(f"-->Querying {BLUE}JMMC Stellar Diameters Catalogue{RESET}...")
     # By default, CATCH queries the JMMC catalog for stars within 10 degrees, but it can be increased as required
-    jmmc_result = vizier.query_region(f"{star_name}", radius="10d", column_filters={"Vmag":"<9.0", "Hmag":"<6.4",
+    jmmc_result = vizier.query_region(f"{star_name}", radius="10d", column_filters={"Vmag":"<9.0", "Hmag":"<=6.4",
                                                                            "UDDH": "<0.4", "_DEJ2000": ">-25"})[0]
     print(f"-->{GREEN}Query complete!{RESET}")
     # Cross-check with Gaia DR3 catalogue for IPDfmp (<2), RUWE (<1.4), RVamp, and Vbroad<100 binarity and rapid
@@ -188,6 +189,12 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
         if (jmmc_result['Vmag'] > 9) |  (jmmc_result['Hmag'] > 6.4) | (jmmc_result['UDDH'] > 0.5):
             print(f"-->{RED}{calibrator_name} fails JMMC Stellar Diameters Catalogue checks!{RESET}")
             check_pass_count -= 1
+            if jmmc_result['Vmag'] > 9:
+                print(f"---->{RED}Calibrator Vmag > 9!{RESET}")
+            if jmmc_result['Hmag'] > 6.4:
+                print(f"---->{RED}Calibrator Hmag > 6.4!{RESET}")
+            if jmmc_result['UDDH'] > 0.5:
+                print(f"---->{RED}Calibrator UDDH > 0.5!{RESET}")
         else:
             pass
 
@@ -217,8 +224,13 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
                 ((gaia_result[0]['Vbroad'] is not np.ma.masked) and (gaia_result[0]['Vbroad'] > 100))):
             print(f"-->{RED}{calibrator_name} fails Gaia DR3 Catalogue checks!{RESET}")
             check_pass_count -= 1
+            if gaia_result[0]['IPDfmp'] > 2:
+                print(f"---->{RED}Calibrator IPDfmp > 2!{RESET}")
+            if gaia_result[0]['RUWE'] > 1.4:
+                print(f"---->{RED}Calibrator RUWE > 1.4!{RESET}")
             if gaia_result[0]['Vbroad'] > 100:
                 check_pass_count -= 5
+                print(f"---->{RED}Calibrator Vbroad > 100!{RESET}")
         else:
             pass
 
@@ -232,6 +244,14 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
                 | kervella_result[0]['BinG2'] != 0):
             print(f"-->{RED}{calibrator_name} fails Kervella et al. 2019 Catalogue checks!{RESET}")
             check_pass_count -= 5
+            if kervella_result[0]['DMS'] != 0:
+                print(f"---->{RED}Calibrator DMS != 0!{RESET}")
+            if kervella_result[0]['W'] != 0:
+                print(f"---->{RED}Calibrator W != 0!{RESET}")
+            if kervella_result[0]['BinH'] != 0:
+                print(f"---->{RED}Calibrator BinH != 0!{RESET}")
+            if kervella_result[0]['BinG2'] != 0:
+                print(f"---->{RED}Calibrator BinG2 != 0!{RESET}")
         else:
             pass
 
@@ -251,6 +271,10 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
         if (cruzalebes_result['CalFlag'] != 0) | (cruzalebes_result['IRflag'] == 7):
             print(f"-->{RED}{calibrator_name} fails Cruzalebes et al. 2019 Catalogue checks!{RESET}")
             check_pass_count -= 1
+            if cruzalebes_result['CalFlag'] != 0:
+                print(f"---->{RED}Calibrator CalFlag != 0!{RESET}")
+            if cruzalebes_result['IRFlag'] == 7:
+                print(f"---->{RED}Calibrator IRFlag = 7!{RESET}")
         else:
             pass
 
@@ -259,9 +283,12 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
               f"Check against other catalogues!{RESET}")
 
     t2 = time.perf_counter()
-    if check_pass_count / init_check_pass_count > 0.7:
+    if check_pass_count / init_check_pass_count == 1:
         print(f"-->{YELLOW}{calibrator_name}{RESET} passed {GREEN}{check_pass_count}/{init_check_pass_count}{RESET} checks")
-        print(f"Confirmed {YELLOW}{calibrator_name}{RESET} is likely a viable calibrator in {round(t2 - t1, 2)} seconds!")
+        print(f"Confirmed {YELLOW}{calibrator_name}{RESET} is likely an {GREEN}ideal{RESET} calibrator in {round(t2 - t1, 2)} seconds!")
+    elif (check_pass_count / init_check_pass_count < 1) & (check_pass_count / init_check_pass_count >= 0.7):
+        print(f"-->{YELLOW}{calibrator_name}{RESET} passed {ORANGE}{check_pass_count}/{init_check_pass_count}{RESET} checks")
+        print(f"Confirmed {YELLOW}{calibrator_name}{RESET} is likely a {GREEN}usable{RESET} calibrator in {round(t2 - t1, 2)} seconds!")
     else:
         print(f"{YELLOW}{calibrator_name}{RESET} {RED}is unlikely to be a viable calibrator!{RESET}\n")
         print("We recommend submitting this star to the JMMC Bad Calibrators Database: https://www.jmmc.fr/badcal/")
