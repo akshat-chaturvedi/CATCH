@@ -273,7 +273,7 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
             check_pass_count -= 1
             if cruzalebes_result['CalFlag'] != 0:
                 print(f"---->{RED}Calibrator CalFlag != 0!{RESET}")
-            if cruzalebes_result['IRFlag'] == 7:
+            if cruzalebes_result['IRflag'] == 7:
                 print(f"---->{RED}Calibrator IRFlag = 7!{RESET}")
         else:
             pass
