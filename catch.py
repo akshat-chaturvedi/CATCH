@@ -90,8 +90,13 @@ def cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> No
     # WARNING: Doing this, depending on how much you increased the row limit by, can crash the program!!
     # vizier.TIMEOUT = 120
     gaia_result = vizier.query_region(jmmc_result, radius="10s", column_filters={"IPDfmp": "<2", "RUWE": "<1.4",
-                                                                           "Vbroad": "<100"})[0]
+                                                                           "Vbroad": "<100"})
     print(f"-->{GREEN}Query complete!{RESET}")
+    if len(gaia_result) > 0:
+        gaia_result = gaia_result[0]
+    else:
+        exit("ERROR: No calibrators found within 10 degrees of your target in Gaia DR3. Consider modifying your "
+             "constraints!")
     if gaia_comp_check:
         vizier_neighbors = Vizier(columns=["_RAJ2000", "_DEJ2000", "IPDfmp", "RUWE", "RVamp", "Vbroad", "+_r"],
                                   catalog="I/355/gaiadr3")
@@ -121,8 +126,14 @@ def cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> No
     vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "DMS", "W", "BinH", "BinG2"], catalog="J/A+A/623/A72")
     print(f"-->Querying {BLUE}Kervella et al. 2019 Catalogue{RESET}...")
     kervella_result = vizier.query_region(gaia_result, radius="10s", column_filters={"DMS": "=0", "W": "=0",
-                                                                           "BinH": "=0", "BinG2": "=0"})[0]
+                                                                           "BinH": "=0", "BinG2": "=0"})
     print(f"-->{GREEN}Query complete!{RESET}")
+    if len(kervella_result) > 0:
+        kervella_result = kervella_result[0]
+    else:
+        exit("ERROR: No calibrators found within 10 degrees of your target in the Kervella et al. 2019 Catalogue. "
+             "Consider modifying your constraints!")
+
     kervella_cols = Table([kervella_result['DMS'], kervella_result['W'], kervella_result['BinH'],
                            kervella_result['BinG2']])
 
@@ -133,8 +144,13 @@ def cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> No
     vizier = Vizier(columns=["Diam-GAIA", "CalFlag", "IRflag"], catalog="II/361/mdfc-v10")
     print(f"-->Querying {BLUE}Cruzalebes et al. 2019 Catalogue (MDFC){RESET}...")
     cruzalebes_result = vizier.query_region(kervella_result, radius="10s", column_filters={"CalFlag": "=0",
-                                                                                           "IRflag": "=0"})[0]
+                                                                                           "IRflag": "=0"})
     print(f"-->{GREEN}Query complete!{RESET}")
+    if len(cruzalebes_result) > 0:
+        cruzalebes_result = cruzalebes_result[0]
+    else:
+        exit("ERROR: No calibrators found within 10 degrees of your target in MDFC. Consider modifying your "
+             "constraints!")
     cruzalebes_cols = Table([cruzalebes_result['Diam-GAIA'], cruzalebes_result['CalFlag'], cruzalebes_result['IRflag']])
 
     ind = cruzalebes_result['_q'] - 1
