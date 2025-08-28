@@ -68,10 +68,18 @@ def cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> No
     # NOTE: Increasing it will increase run-time
     vizier.ROW_LIMIT = 100
     print(f"-->Querying {BLUE}JMMC Stellar Diameters Catalogue (JSDC){RESET}...")
-    # By default, CATCH queries the JMMC catalog for stars within 10 degrees, but it can be increased as required
+
+    # By default, CATCH queries the JMMC catalog for stars within 10 degrees, but it can be increased as required. The
+    # default constraints are described in the README file, but can be edited by changing the column_filters parameter
+    # in the query below. Guidance on syntax can be found at https://vizier.cds.unistra.fr/vizier/vizHelp/cst.htx
     jmmc_result = vizier.query_region(f"{star_name}", radius="10d", column_filters={"Vmag":"<9.0", "Hmag":"<=6.4",
-                                                                           "UDDH": "<0.4", "_DEJ2000": ">-25"})[0]
+                                                                           "UDDH": "<0.4", "_DEJ2000": ">-25"})
     print(f"-->{GREEN}Query complete!{RESET}")
+    if len(jmmc_result) > 0:
+        jmmc_result = jmmc_result[0]
+    else:
+        exit("ERROR: No calibrators found within 10 degrees of your target in JSDC. Consider modifying your "
+             "constraints!")
     # Cross-check with Gaia DR3 catalogue for IPDfmp (<2), RUWE (<1.4), RVamp, and Vbroad<100 binarity and rapid
     # rotation checks
     vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "IPDfmp", "RUWE", "RVamp", "Vbroad", "+_r"],
