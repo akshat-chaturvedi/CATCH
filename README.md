@@ -123,5 +123,5 @@ The latest version of `CATCH` has been developed for:
 - numpy>=1.24.4
 
 ## Acknowledgments
-- We would like to thank Becky Flores and Dr. Gail Schaefer at the CHARA Array for their expert guidance in determining the necessary criteria for calibrator determination (and all the observing help!)
+- We would like to thank Becky Flores and Dr. Gail Schaefer at the CHARA Array for their expert guidance in defining the necessary criteria for calibrator determination (and all the observing help!)
 - Banner background image: [The exotic stellar population of Westerlund 1 (ESA/Webb, NASA & CSA, M. Zamani (ESA/Webb), M. G. Guarcello (INAF-OAPA) and the EWOCS team)](https://esawebb.org/images/potm2409a/)
