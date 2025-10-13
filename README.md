@@ -31,14 +31,19 @@ The GitHub version is the most up-to-date. To install from the GitHub repository
 ```
 $ pip install uv
 ```
-You can then clone the repository and isntall `CATCH` using:
+You can then clone the repository and install `CATCH` using:
 ```
-$ git clone https://github.com/akshat-chaturvedi/CATCH.git
+$ c
 ``` 
 Then `cd` into the `CATCH` directory and use `uv sync` to ensure all dependencies match 
 ``` 
 $ cd CATCH && uv sync
 ``` 
+
+**NOTE:** `CATCH` requires Python version >=3.10. If you do not have this installed on your device, you can use `uv` to update the virtual environment to a compatible python version with the following:
+```
+$ uv venv --python 3.10
+```
 
 ### Running the code
 You can either run the code using `uv run catch.py` or with `python3 catch.py`.
@@ -118,6 +123,7 @@ Confirmed HD 30913 is likely an ideal calibrator in 9.4 seconds!
 ### Dependencies
 
 The latest version of `CATCH` has been developed for:
+- python>=3.10
 - astropy>=5.2.2
 - astroquery>=0.4.7
 - numpy>=1.24.4
