@@ -33,7 +33,7 @@ $ pip install uv
 ```
 You can then clone the repository and install `CATCH` using:
 ```
-$ c
+$ git clone https://github.com/akshat-chaturvedi/CATCH.git
 ``` 
 Then `cd` into the `CATCH` directory and use `uv sync` to ensure all dependencies match 
 ``` 
