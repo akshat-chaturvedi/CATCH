@@ -119,6 +119,13 @@ Checking calibrator viability of: HD 30913
 -->HD 30913 passed 5/5 checks
 Confirmed HD 30913 is likely an ideal calibrator in 9.4 seconds!
 ```
+### Known Issues
+Sometimes (more so recently) the default Vizier site (https://vizier.cds.unistra.fr/) is down. In such a case, the Vizier query will time out. If this happens you can change which Vizier server is being used by uncommenting the following line from the `main` function:
+```commandline
+# If you get a timeout error, un-comment the following line to use the Japanese mirror site for Vizier
+# conf.server = "vizier.nao.ac.jp"
+print("Current Vizier server:", conf.server)
+```
 
 ### Dependencies
 

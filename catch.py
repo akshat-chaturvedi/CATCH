@@ -1,4 +1,4 @@
-from astroquery.vizier import Vizier
+from astroquery.vizier import Vizier, conf
 from astroquery.simbad import Simbad
 from astropy.table import Table, hstack
 from astropy.coordinates import SkyCoord
@@ -203,7 +203,12 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
     if len(star_details_table) == 0:
         exit(f"Error: {YELLOW}{calibrator_name}{RESET} not found in SIMBAD. Please check that you typed it in correctly!")
     else:
-        pass
+        star_dec = star_details_table['dec'].value[0]
+
+        if star_dec <= -25:
+            exit("This star is outside the declination limits (DEC > -25) for the CHARA Array!")
+        else:
+            pass
 
     if gaia_comp_check:
         init_check_pass_count = 5
@@ -360,6 +365,9 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
 
 
 def main():
+    # If you get a timeout error, un-comment the following line to use the Japanese mirror site for Vizier
+    # conf.server = "vizier.nao.ac.jp"
+    print("Current Vizier server:", conf.server)
     main_question = (
         input(f"Would you like to find calibrators for a science target {BLUE}(type A){RESET}, "
               f"or check a possible calibrator's viability {BLUE}(type B){RESET}?:\n"))
