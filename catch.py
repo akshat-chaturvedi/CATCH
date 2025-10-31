@@ -8,6 +8,7 @@ import collections
 import numpy as np
 import warnings
 from astroquery.exceptions import NoResultsWarning
+import requests
 
 warnings.simplefilter("ignore", NoResultsWarning)
 
@@ -62,7 +63,7 @@ def cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> No
     print(f"Beginning calibration search for target: {YELLOW}{star_name}{RESET}")
     # Check with JMMC Stellar Diameters Catalogue (Vmag < 9.0, Hmag < 6.4, UDDH < 0.4)
     vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "SpType", "Vmag", "Rmag","Hmag", "Kmag", "UDDH", "UDDK",
-                             "+_r"], catalog="II/346/jsdc_v2")
+                             "e_LDD", "+_r"], catalog="II/346/jsdc_v2")
 
     # The default vizier query row limit is set here to 100. If you would like to search for more, increase this number
     # NOTE: Increasing it will increase run-time
@@ -220,7 +221,7 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
     print(f"Checking calibrator viability of: {YELLOW}{calibrator_name}{RESET}")
     # Check with JMMC Stellar Diameters Catalogue (Vmag < 9.0, Hmag < 6.4, UDDH < 0.4, SpType = GKM)
     vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "SpType", "Vmag", "Rmag", "Hmag", "Kmag", "UDDH", "UDDK",
-                             "+_r"], catalog="II/346/jsdc_v2")
+                             "e_LDD", "+_r"], catalog="II/346/jsdc_v2")
 
     vizier.ROW_LIMIT = 100
     print(f"-->Querying {BLUE}JMMC Stellar Diameters Catalogue (JSDC){RESET}...")
@@ -365,9 +366,15 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
 
 
 def main():
-    # If you get a timeout error, un-comment the following line to use the Japanese mirror site for Vizier
-    # conf.server = "vizier.nao.ac.jp"
-    print("Current Vizier server:", conf.server)
+    Vizier.clear_cache()
+
+    print(f"Vizier server: {GREEN}{conf.server}{RESET}")
+    vizier_web_status = requests.get('https://' + f'{conf.server}').status_code
+    if vizier_web_status != 200:
+        exit(f"Vizier is currently down (HTML Response Code: {vizier_web_status})!")
+    else:
+        print(f"{GREEN}Vizier server up (HTML Response Code: {vizier_web_status})!{RESET}")
+
     main_question = (
         input(f"Would you like to find calibrators for a science target {BLUE}(type A){RESET}, "
               f"or check a possible calibrator's viability {BLUE}(type B){RESET}?:\n"))
