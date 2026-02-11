@@ -120,7 +120,22 @@ Checking calibrator viability of: HD 30913
 Confirmed HD 30913 is likely an ideal calibrator in 9.4 seconds!
 ```
 ### Known Issues
-Sometimes (more so recently) the default Vizier site (https://vizier.cds.unistra.fr/) is down. In such a case, the Vizier query will either time out or simply not go through. At present, there doesn't seem to be a way to resolve this, so we recommend finding calibrators well in advance of observing, and not relying on `CATCH` for "on-the-fly" calibrator searches during observing runs.
+#### Vizier server timeouts
+Sometimes (more so recently) the default Vizier site (https://vizier.cds.unistra.fr/) is down. In such a case, the Vizier 
+query will either time out or simply not go through. At present, there doesn't seem to be a way to resolve this, so we 
+recommend finding calibrators well in advance of observing, and not relying on `CATCH` for "on-the-fly" calibrator 
+searches during observing runs.
+
+#### Reliability of Gaia flags
+The two parameters that `CATCH` checks for in the Gaia DR3 database is the **Renormalised Unit Weight Error (RUWE)** 
+and the **Image Parameter Determination fraction of multiple peaks (IPDfmp)**. **RUWE** is a measure of the goodness of fit
+of a single star astrometric model to each Gaia source. While **RUWE** is a very good indicator of the possible multiplicity 
+of a source, it usually peaks at separations between about 0.04 to 1 arcsecond, so anything closer or wider won't be 
+picked up by it.
+**IPDfmp** measures the fraction of Gaia images that have more than one peak in the PSF. This parameter is pretty 
+reliable, and usually IPDfmp > 2 is indicative of a companion. It is however less useful for very close companions though,
+as it peaks between ~ 0.1 to 1 arcsecond separations. As such, a possible calibrator that passes the Gaia checks may still
+be a very close separation binary star.
 
 ### Dependencies
 

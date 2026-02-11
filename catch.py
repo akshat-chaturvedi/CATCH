@@ -24,7 +24,8 @@ BLINK = '\033[5m'
 
 # __version__ = '1.0 | 2025/08/26' # First release version :)
 # __version__ = '1.1 | 2025/08/27' # Changes to file output and printout formats
-__version__ = '1.2 | 2025/10/31' # Added e_LDD to print output, vizier server error messages
+# __version__ = '1.2 | 2025/10/31' # Added e_LDD to print output, vizier server error messages
+__version__ = '1.3 | 2026/02/11' # Added server switch capability if normal Vizier server is down, updated README
 
 
 def cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> None:
@@ -367,14 +368,16 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
 
 
 def main():
-    # Vizier.clear_cache()
+    Vizier.clear_cache()
 
     print(f"Vizier server: {GREEN}{conf.server}{RESET}")
     vizier_web_status = requests.get('https://' + f'{conf.server}').status_code
     if vizier_web_status != 200:
-        exit(f"Vizier is currently down (HTML Response Code: {vizier_web_status})!")
+        print(f"Vizier is currently down (HTML Response Code: {RED}{vizier_web_status}{RESET}), switching to "
+              f"{GREEN}vizier.nao.ac.jp{RESET}")
+        Vizier.VIZIER_SERVER = "vizier.nao.ac.jp"
     else:
-        print(f"Vizier server up (HTML Response Code: {GREEN}{vizier_web_status}{RESET})")
+        print(f"{GREEN}{conf.server}{RESET} server up (HTML Response Code: {GREEN}{vizier_web_status}{RESET})")
 
     main_question = (
         input(f"Would you like to find calibrators for a science target {BLUE}(type A){RESET}, "
