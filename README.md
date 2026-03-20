@@ -1,4 +1,4 @@
-![banner](Banner/CATCH_banner.png)
+![banner](Banner/CATCH_Banner_New.png)
 
 [![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff)](https://www.python.org)
 [![numpy](https://img.shields.io/badge/NumPy-4DABCF?logo=numpy&logoColor=fff)](http://www.numpy.org/)
@@ -46,10 +46,12 @@ $ uv venv --python 3.10
 ```
 
 ### Running the code
-You can either run the code using `uv run catch.py` or with `python3 catch.py`.
+You can either run the code using `uv run catch.py` or with `python3 catch.py` for an interactive run. 
+
+If you are a more experienced user, and would prefer a faster use-case, you can use `CATCH` as a CLI. You can run it as such using `uv run catch.py -[FLAGS]`. For a list of usable flags, use `uv run catch.py -h`.
 
 ### Example Usage — Generating List of Verified Calibrators
-You can use the built-in `main` function (the default run case) as shown in the example below to generate a list of calibrators for a given science target. The calibrators are saved in an `ascii` file titled **star_name_Calibrators.txt**. 
+You can use the built-in `main` function (the default run case) as shown in the example below to generate a list of viable calibrators for a given science target. The calibrators are saved in an `ascii` file titled **star_name_Calibrators.txt**. 
 ```
 $ uv run catch.py
 
@@ -119,6 +121,33 @@ Checking calibrator viability of: HD 30913
 -->HD 30913 passed 5/5 checks
 Confirmed HD 30913 is likely an ideal calibrator in 9.4 seconds!
 ```
+
+### Example Usage — Generating List of Verified Calibrators Using the CLI Mode
+You can use `CATCH` in the CLI mode to find a list of viable calibrators for a given science target as shown in the example below
+```
+$ uv run catch.py -f -g -t "HD89484"
+
+        ############################ This is CATCH ############################
+                   [C]HARA [A]rray's [T]hrifty [C]alibrator [H]unter
+                                 Version: 1.4 | 2026/03/20                           
+                       https://github.com/akshat-chaturvedi/CATCH                 
+        #######################################################################
+        
+Vizier server: vizier.cds.unistra.fr
+vizier.cds.unistra.fr server up (HTML Response Code: 200)
+Beginning calibration search for target: HD89484
+-->Querying JMMC Stellar Diameters Catalogue (JSDC)...
+-->Query complete!
+-->Querying Gaia DR3 Catalogue...
+-->Query complete!
+-->Checking for close Gaia companions within 5"
+-->Querying Kervella et al. 2019 Catalogue...
+-->Query complete!
+-->Querying Cruzalebes et al. 2019 Catalogue (MDFC)...
+-->Query complete!
+Found 33 viable calibrators in 1.37 seconds!
+```
+
 ### Known Issues
 #### Vizier server timeouts
 Sometimes (more so recently) the default Vizier site (https://vizier.cds.unistra.fr/) is down. In such a case, the Vizier 

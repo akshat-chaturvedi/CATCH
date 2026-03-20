@@ -1,3 +1,16 @@
+#!/usr/bin/env python
+
+"""catch.py: A program to cross-match across multiple Vizier databases to return suitable calibrator stars for
+observations with the CHARA Array"""
+
+__author__ = "Akshat S. Chaturvedi and Mahir M. Patel"
+__credits__ = ["Akshat S. Chaturvedi", "Mahir M. Patel", "Colin Kane", "Becky Flores", "Jeremy Jones"]
+__license__ = "MIT"
+__version__ = "1.4 | 2026/03/20" # Added CLI, new banner
+__maintainer__ = "Akshat S. Chaturvedi"
+__email__ = "achaturvedi3@gsu.edu"
+__status__ = "Production"
+
 from astroquery.vizier import Vizier, conf
 from astroquery.simbad import Simbad
 from astropy.table import Table, hstack
@@ -9,6 +22,8 @@ import numpy as np
 import warnings
 from astroquery.exceptions import NoResultsWarning
 import requests
+from argparse import ArgumentParser
+import sys
 
 warnings.simplefilter("ignore", NoResultsWarning)
 
@@ -25,7 +40,7 @@ BLINK = '\033[5m'
 # __version__ = '1.0 | 2025/08/26' # First release version :)
 # __version__ = '1.1 | 2025/08/27' # Changes to file output and printout formats
 # __version__ = '1.2 | 2025/10/31' # Added e_LDD to print output, vizier server error messages
-__version__ = '1.3 | 2026/02/11' # Added server switch capability if normal Vizier server is down, updated README
+# __version__ = '1.3 | 2026/02/11' #  Added server switch capability if normal Vizier server is down, updated README
 
 
 def cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> None:
@@ -368,72 +383,145 @@ def cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
 
 
 def main():
-    Vizier.clear_cache()
+    # Vizier.clear_cache()
 
-    print(f"Vizier server: {GREEN}{conf.server}{RESET}")
-    vizier_web_status = requests.get('https://' + f'{conf.server}').status_code
-    if vizier_web_status != 200:
-        print(f"Vizier is currently down (HTML Response Code: {RED}{vizier_web_status}{RESET}), switching to "
-              f"{GREEN}vizier.nao.ac.jp{RESET}")
-        Vizier.VIZIER_SERVER = "vizier.nao.ac.jp"
-    else:
-        print(f"{GREEN}{conf.server}{RESET} server up (HTML Response Code: {GREEN}{vizier_web_status}{RESET})")
-
-    main_question = (
-        input(f"Would you like to find calibrators for a science target {BLUE}(type A){RESET}, "
-              f"or check a possible calibrator's viability {BLUE}(type B){RESET}?:\n"))
-    if main_question in ["A", "a"]:
-        target_star_name = input("Please enter the name of your target (please ensure the name is resolvable in SIMBAD):\n")
-        gaia_question = input("Would you like to filter calibrators by whether they have close companions in Gaia DR3 "
-                              "Y/[N]?\n").strip()
-        if gaia_question in ["Y", "y"]:
-            while True:
-                gaia_radius = input("Please enter the desired cutoff radius (in arcseconds) for Gaia companions:\n").strip()
-                if not gaia_radius:
-                    print(f"{RED}Invalid cutoff radius, please enter a number!{RESET}")
-                    continue
-                try:
-                    gaia_radius = float(gaia_radius)
-                    cal_finder(target_star_name, gaia_radius)
-                    break
-                except ValueError:
-                    print(f"{RED}Invalid cutoff radius, please enter a number!{RESET}")
-
+    if len(sys.argv) <= 1:
+        print(f"Vizier server: {GREEN}{conf.server}{RESET}")
+        vizier_web_status = requests.get('https://' + f'{conf.server}').status_code
+        if vizier_web_status != 200:
+            print(f"Vizier is currently down (HTML Response Code: {RED}{vizier_web_status}{RESET}), switching to "
+                  f"{GREEN}vizier.nao.ac.jp{RESET}")
+            Vizier.VIZIER_SERVER = "vizier.nao.ac.jp"
         else:
-            cal_finder(target_star_name)
+            print(f"{GREEN}{conf.server}{RESET} server up (HTML Response Code: {GREEN}{vizier_web_status}{RESET})")
 
-
-    elif main_question in ["B", "b"]:
-        multiple_cal_check = input(f"Would you like to check a single calibrator, or multiple calibrators? [S]/M\n")
-        if multiple_cal_check in ["S", "s", ""]:
-            target_star_name = input("Please enter the name of your calibrator (please ensure the name is resolvable in SIMBAD):\n")
-            gaia_question = input("Would you like to filter calibrators by whether it has a companion within 10\" in Gaia DR3 "
+        main_question = (
+            input(f"Would you like to find calibrators for a science target {BLUE}(type A){RESET}, "
+                  f"or check a possible calibrator's viability {BLUE}(type B){RESET}?:\n"))
+        if main_question in ["A", "a"]:
+            target_star_name = input("Please enter the name of your target (please ensure the name is resolvable in SIMBAD):\n")
+            gaia_question = input("Would you like to filter calibrators by whether they have close companions in Gaia DR3 "
                                   "Y/[N]?\n").strip()
             if gaia_question in ["Y", "y"]:
-                cal_checker(target_star_name, gaia_comp_check=True)
+                while True:
+                    gaia_radius = input("Please enter the desired cutoff radius (in arcseconds) for Gaia companions:\n").strip()
+                    if not gaia_radius:
+                        print(f"{RED}Invalid cutoff radius, please enter a number!{RESET}")
+                        continue
+                    try:
+                        gaia_radius = float(gaia_radius)
+                        cal_finder(target_star_name, gaia_radius)
+                        break
+                    except ValueError:
+                        print(f"{RED}Invalid cutoff radius, please enter a number!{RESET}")
 
             else:
-                cal_checker(target_star_name)
+                cal_finder(target_star_name)
 
-        elif multiple_cal_check in ["M", "m"]:
-            gaia_question = input(
-                "Would you like to filter calibrators by whether it has a companion within 10\" in Gaia DR3 "
-                "Y/[N]?\n").strip()
-            target_star_name_list = input(
-                "Please enter the names of your calibrators as a comma-separated list (please ensure the names are "
-                "resolvable in SIMBAD):\n")
 
-            target_star_name_list = [target_star_name.strip() for target_star_name in target_star_name_list.split(',')]
-
-            for target_star_name in target_star_name_list:
+        elif main_question in ["B", "b"]:
+            multiple_cal_check = input(f"Would you like to check a single calibrator, or multiple calibrators? [S]/M\n")
+            if multiple_cal_check in ["S", "s", ""]:
+                target_star_name = input("Please enter the name of your calibrator (please ensure the name is resolvable in SIMBAD):\n")
+                gaia_question = input("Would you like to filter calibrators by whether it has a companion within 10\" in Gaia DR3 "
+                                      "Y/[N]?\n").strip()
                 if gaia_question in ["Y", "y"]:
                     cal_checker(target_star_name, gaia_comp_check=True)
 
                 else:
                     cal_checker(target_star_name)
 
+            elif multiple_cal_check in ["M", "m"]:
+                gaia_question = input(
+                    "Would you like to filter calibrators by whether it has a companion within 10\" in Gaia DR3 "
+                    "Y/[N]?\n").strip()
+                target_star_name_list = input(
+                    "Please enter the names of your calibrators as a comma-separated list (please ensure the names are "
+                    "resolvable in SIMBAD):\n")
+
+                target_star_name_list = [target_star_name.strip() for target_star_name in target_star_name_list.split(',')]
+
+                for target_star_name in target_star_name_list:
+                    if gaia_question in ["Y", "y"]:
+                        cal_checker(target_star_name, gaia_comp_check=True)
+
+                    else:
+                        cal_checker(target_star_name)
+
+        else:
+            exit(f"{YELLOW}No option selected. Have a good day!{RESET}")
+
     else:
-        exit(f"{YELLOW}No option selected. Have a good day!{RESET}")
+        parser = ArgumentParser(epilog="Happy fringing!")
+
+        main_choice_group = parser.add_mutually_exclusive_group()
+
+        main_choice_group.add_argument("-f", "--find",
+                                       help="Choose this option if you would like to find calibrators for a science target",
+                                       action="store_true")
+
+        parser.add_argument("-t", "--target", help="Add the science target to find calibrators for",
+                            dest="science_target")
+        parser.add_argument("-g", "--gaia",
+                            help="Filter calibrators by whether they have companions within 5 arcseconds in Gaia DR3",
+                            action="store_true")
+
+        main_choice_group.add_argument("-v", "--verify",
+                                       help="Choose this option if you would like to check a possible calibrator's viability",
+                                       action="store_true")
+
+        parser.add_argument("-s", "--single", help="Verify a single calibrator", action="store_true")
+        parser.add_argument("-m", "--multiple", help="Verify multiple calibrators", action="store_true")
+
+        parser.add_argument("-c", "--calibrator",
+                            help="The name of the possible calibrator you want to verify, in quotes",
+                            dest="cand_calibrator")
+
+        parser.add_argument(
+            "-cl", "--cal_list",
+            help="Add comma separated list of possible calibrators in quotes",
+            dest="list_of_cals"
+        )
+
+        args = parser.parse_args()
+
+        if args.find:
+            print(f"Vizier server: {GREEN}{conf.server}{RESET}")
+            vizier_web_status = requests.get('https://' + f'{conf.server}').status_code
+            if vizier_web_status != 200:
+                print(f"Vizier is currently down (HTML Response Code: {RED}{vizier_web_status}{RESET}), switching to "
+                      f"{GREEN}vizier.nao.ac.jp{RESET}")
+                Vizier.VIZIER_SERVER = "vizier.nao.ac.jp"
+            else:
+                print(f"{GREEN}{conf.server}{RESET} server up (HTML Response Code: {GREEN}{vizier_web_status}{RESET})")
+
+            if args.gaia:
+                cal_finder(args.science_target, gaia_comp_check=5)
+            else:
+                cal_finder(args.science_target)
+
+        elif args.verify:
+            print(f"Vizier server: {GREEN}{conf.server}{RESET}")
+            vizier_web_status = requests.get('https://' + f'{conf.server}').status_code
+            if vizier_web_status != 200:
+                print(f"Vizier is currently down (HTML Response Code: {RED}{vizier_web_status}{RESET}), switching to "
+                      f"{GREEN}vizier.nao.ac.jp{RESET}")
+                Vizier.VIZIER_SERVER = "vizier.nao.ac.jp"
+            else:
+                print(f"{GREEN}{conf.server}{RESET} server up (HTML Response Code: {GREEN}{vizier_web_status}{RESET})")
+
+            if args.single:
+                if args.gaia:
+                    cal_checker(args.cand_calibrator, gaia_comp_check=True)
+                else:
+                    cal_checker(args.cand_calibrator)
+
+            elif args.multiple:
+                for target_star_name in [t.strip() for t in args.list_of_cals.split(",")]:
+                    if args.gaia:
+                        cal_checker(target_star_name, gaia_comp_check=True)
+                    else:
+                        cal_checker(target_star_name)
 
 
 if __name__ == '__main__':
