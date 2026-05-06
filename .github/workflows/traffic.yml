@@ -20,7 +20,7 @@ jobs:
 
       - name: Fetch traffic data
         run: |
-          curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          curl -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
                -H "Accept: application/vnd.github+json" \
                https://api.github.com/repos/${{ github.repository }}/traffic/views \
                > views.json
