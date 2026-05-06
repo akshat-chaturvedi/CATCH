@@ -30,6 +30,9 @@ jobs:
                https://api.github.com/repos/${{ github.repository }}/traffic/clones \
                > clones.json
 
+      - name: Show API response
+        run: cat views.json
+
       - name: Save to CSV
         run: |
           echo "$(date),$(jq '.count' views.json),$(jq '.uniques' views.json)" >> views.csv
