@@ -95,7 +95,7 @@ def S_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
     if len(jmmc_result) > 0:
         jmmc_result = jmmc_result[0]
     else:
-        exit("ERROR: No calibrators found within 10 degrees of your target in JSDC. Consider modifying your "
+        exit("WARNING: No calibrators found within 10 degrees of your target in JSDC. Consider modifying your "
              "constraints!")
     # Cross-check with Gaia DR3 catalogue for IPDfmp (<2), RUWE (<1.4), RVamp, and Vbroad<100 binarity and rapid
     # rotation checks
@@ -112,7 +112,7 @@ def S_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
     if len(gaia_result) > 0:
         gaia_result = gaia_result[0]
     else:
-        exit("ERROR: No calibrators found within 10 degrees of your target in Gaia DR3. Consider modifying your "
+        exit("WARNING: No calibrators found within 10 degrees of your target in Gaia DR3. Consider modifying your "
              "constraints!")
     if gaia_comp_check:
         vizier_neighbors = Vizier(columns=["_RAJ2000", "_DEJ2000", "IPDfmp", "RUWE", "RVamp", "Vbroad", "+_r"],
@@ -148,7 +148,7 @@ def S_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
     if len(kervella_result) > 0:
         kervella_result = kervella_result[0]
     else:
-        exit("ERROR: No calibrators found within 10 degrees of your target in the Kervella et al. 2019 Catalogue. "
+        exit("WARNING: No calibrators found within 10 degrees of your target in the Kervella et al. 2019 Catalogue. "
              "Consider modifying your constraints!")
 
     kervella_cols = Table([kervella_result['DMS'], kervella_result['W'], kervella_result['BinH'],
