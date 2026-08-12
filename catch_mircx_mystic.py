@@ -6,7 +6,7 @@ observations with the CHARA Array"""
 __author__ = "Akshat S. Chaturvedi and Mahir M. Patel"
 __credits__ = ["Akshat S. Chaturvedi", "Mahir M. Patel", "Colin Kane", "Becky Flores", "Jeremy Jones"]
 __license__ = "MIT"
-__version__ = "2.0 | 2026/07/30" #Added Instruments for MIRC-X/MYSTIC, SILMARIL, and SPICA
+__version__ = "2.0 | 2026/08/12" #Added Instruments for MIRC-X/MYSTIC, SILMARIL, and SPICA
 __maintainer__ = "Akshat S. Chaturvedi"
 __email__ = "achaturvedi3@gsu.edu"
 __status__ = "Production"
@@ -168,11 +168,11 @@ def HK_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
              "Consider modifying your constraints!")
 
     mask = (
-            (kervella_result["BinHG1"] == 0) and
-            (kervella_result["BinH2G2"] == 0) and
-            (kervella_result["BinH2EG3b"] == 0) and
-            (kervella_result["snrPMaHG1"] < 3.0) and
-            (kervella_result["snrPMaH2G2"] < 3.0) and
+            (kervella_result["BinHG1"] == 0) &
+            (kervella_result["BinH2G2"] == 0) &
+            (kervella_result["BinH2EG3b"] == 0) &
+            (kervella_result["snrPMaHG1"] < 3.0) &
+            (kervella_result["snrPMaH2G2"] < 3.0) &
             (kervella_result["snrPMaH2EG3b"] < 3.0)
     )
 

@@ -6,7 +6,7 @@ observations with the CHARA Array"""
 __author__ = "Akshat S. Chaturvedi and Mahir M. Patel"
 __credits__ = ["Akshat S. Chaturvedi", "Mahir M. Patel", "Colin Kane", "Becky Flores", "Jeremy Jones"]
 __license__ = "MIT"
-__version__ = "2.0 | 2026/07/30" #Added Instruments for MRIC-X, MYSTIC, SILMARIL
+__version__ = "2.0 | 2026/08/12" #Added Instruments for MRIC-X, MYSTIC, SILMARIL
 __maintainer__ = "Akshat S. Chaturvedi"
 __email__ = "achaturvedi3@gsu.edu"
 __status__ = "Production"
