@@ -21,6 +21,7 @@ import collections
 import numpy as np
 import warnings
 from astroquery.exceptions import NoResultsWarning
+from astropy.utils.metadata import MergeConflictWarning
 import requests
 from argparse import ArgumentParser
 import sys
@@ -31,6 +32,7 @@ from catch_spica import *
 Vizier.clear_cache()
 
 warnings.simplefilter("ignore", NoResultsWarning)
+warnings.simplefilter("ignore", MergeConflictWarning)
 
 RED = '\033[91m'
 GREEN = '\033[92m'
@@ -120,6 +122,7 @@ def questions(instrument: str):
                         break
 
                     except ValueError:
+                        print("b")
                         print(f"{RED}Invalid cutoff radius, please enter a number!{RESET}")
                         break
 

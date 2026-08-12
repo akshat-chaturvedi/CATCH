@@ -1,13 +1,13 @@
 [project]
 name = "CATCH"
 dynamic = ["version"]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 readme = {file="README.md", content-type="text/markdown"}
 keywords = ["optical interferometry", "astrophysics"]
 description = "Find and verify calibrator stars for optical interferometry targets at the CHARA Array"
 authors = [
     {name = "Akshat S. Chaturvedi", email = "achaturvedi3@gsu.edu"},
-    {name = "Mahir Patel"}
+    {name = "Mahir M. Patel"}
 ]
 dependencies = [
     "astropy>=5.2.2",
