@@ -28,6 +28,8 @@ from catch_mircx_mystic import *
 from catch_silmaril import *
 from catch_spica import *
 
+Vizier.clear_cache()
+
 warnings.simplefilter("ignore", NoResultsWarning)
 
 RED = '\033[91m'
@@ -118,10 +120,8 @@ def questions(instrument: str):
                         break
 
                     except ValueError:
-                        print(
-                            f"{RED}Invalid cutoff radius, "
-                            f"please enter a number!{RESET}"
-                        )
+                        print(f"{RED}Invalid cutoff radius, please enter a number!{RESET}")
+                        break
 
             else:
                 if instrument == "HK":

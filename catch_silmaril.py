@@ -25,6 +25,8 @@ import requests
 from argparse import ArgumentParser
 import sys
 
+# Vizier.clear_cache()
+
 warnings.simplefilter("ignore", NoResultsWarning)
 
 RED = '\033[91m'
@@ -89,7 +91,7 @@ def S_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
     # By default, CATCH queries the JMMC catalog for stars within 10 degrees, but it can be increased as required. The
     # default constraints are described in the README file, but can be edited by changing the column_filters parameter
     # in the query below. Guidance on syntax can be found at https://vizier.cds.unistra.fr/vizier/vizHelp/cst.htx
-    jmmc_result = vizier.query_region(f"{star_name}", radius="10d", column_filters={"Vmag":"9..10.5", "Hmag":"9..10.5", "Kmag":"9..10.5",
+    jmmc_result = vizier.query_region(f"{star_name}", radius="10d", column_filters={"Vmag":"<11", "Hmag":"<10.5", "Kmag":"<10.5",
                                                                            "UDDH": "<0.4", "_DEJ2000": ">-25"})
     print(f"-->{GREEN}Query complete!{RESET}")
     if len(jmmc_result) > 0:
@@ -139,28 +141,58 @@ def S_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
 
     first_cross_check_table = hstack([jmmc_cols, gaia_cols])
 
-    # Cross-check with Kervella catalogue for binarity (should all be 0)
-    vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "DMS", "W", "BinH", "BinG2"], catalog="J/A+A/623/A72")
-    print(f"-->Querying {BLUE}Kervella et al. 2019 Catalogue{RESET}...")
-    kervella_result = vizier.query_region(gaia_result, radius="10s", column_filters={"DMS": "=0", "W": "=0",
-                                                                           "BinH": "=0", "BinG2": "=0"})
+    # Cross-check with Kervella catalogue for binarity (should all be 0 or <3 for "snr" columns)
+    # vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "DMS", "W", "BinH", "BinG2"], catalog="J/A+A/623/A72")
+    # vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "DMS", "W", "BinHG1", "BinH2G2", "BinH2EG3b", "snrPMaHG1",
+    #                          "snrPMaH2G2", "snrPMaH2EG3b"], catalog="J/A+A/657/A7")
+    vizier = Vizier(columns=["*"], catalog="J/A+A/657/A7/tablea1")
+    print(f"-->Querying {BLUE}Kervella et al. 2022 Catalogue{RESET}...")
+    # kervella_result = vizier.query_region(gaia_result, radius="10s", column_filters={"DMS": "=0", "W": "=0",
+    #                                                                        "BinH": "=0", "BinG2": "=0"})
+
+    coords = SkyCoord(ra=gaia_result['_RAJ2000'], dec=gaia_result['_DEJ2000'], unit=(u.deg, u.deg))
+
+    # kervella_result = vizier.query_region(coords, radius="10s", column_filters={"DMS": "=0", "W": "=0", "BinHG1": "=0", "BinH2G2": "=0",
+    #                                                                                  "BinH2EG3b": "=0",
+    #                                                                                  "snrPMaHG1": "<3.0",
+    #                                                                                  "snrPMaH2G2": "<3.0",
+    #                                                                                  "snrPMaH2EG3b": "<3.0"})
+
+    kervella_result = vizier.query_region(coords, radius="10s")
+
     print(f"-->{GREEN}Query complete!{RESET}")
     if len(kervella_result) > 0:
         kervella_result = kervella_result[0]
     else:
-        exit("WARNING: No calibrators found within 10 degrees of your target in the Kervella et al. 2019 Catalogue. "
+        exit("ERROR: No calibrators found within 10 degrees of your target in the Kervella et al. 2022 Catalogue. "
              "Consider modifying your constraints!")
 
-    kervella_cols = Table([kervella_result['DMS'], kervella_result['W'], kervella_result['BinH'],
-                           kervella_result['BinG2']])
+    mask = (
+            (kervella_result["BinHG1"] == 0) &
+            (kervella_result["BinH2G2"] == 0) &
+            (kervella_result["BinH2EG3b"] == 0) &
+            (kervella_result["snrPMaHG1"] < 3.0) &
+            (kervella_result["snrPMaH2G2"] < 3.0) &
+            (kervella_result["snrPMaH2EG3b"] < 3.0)
+    )
 
-    ind = kervella_result['_q'] - 1
-    second_cross_check_table = hstack([first_cross_check_table[ind], kervella_cols])
+    kervella_filtered = kervella_result[mask]
+    k_coords = SkyCoord(ra=kervella_filtered['RAdeg'], dec=kervella_filtered['DEdeg'], unit=(u.deg, u.deg))
+
+    idx, sep2d, _ = k_coords.match_to_catalog_sky(coords)
+
+    # kervella_cols = Table(
+        # [kervella_result['DMS'], kervella_result['W'], kervella_result['BinH'], kervella_result['BinG2']])
+    kervella_cols = Table([kervella_filtered['BinHG1'], kervella_filtered['BinH2G2'],
+                           kervella_filtered['BinH2EG3b'], kervella_filtered['snrPMaHG1'], kervella_filtered['snrPMaH2G2'],
+                           kervella_filtered['snrPMaH2EG3b']])
+
+    second_cross_check_table = hstack([first_cross_check_table[idx], kervella_cols])
 
     # Cross-check with Cruzalebes catalogue for possible use as calibrators (CalFlag and IRflag should be 0)
     vizier = Vizier(columns=["Diam-GAIA", "CalFlag", "IRflag"], catalog="II/361/mdfc-v10")
     print(f"-->Querying {BLUE}Cruzalebes et al. 2019 Catalogue (MDFC){RESET}...")
-    cruzalebes_result = vizier.query_region(kervella_result, radius="10s", column_filters={"CalFlag": "=0",
+    cruzalebes_result = vizier.query_region(k_coords, radius="10s", column_filters={"CalFlag": "=0",
                                                                                            "IRflag": "=0"})
     print(f"-->{GREEN}Query complete!{RESET}")
     if len(cruzalebes_result) > 0:
@@ -185,8 +217,15 @@ def S_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
     fcct['_DEJ2000'] = coords.dec.to_string(unit=u.deg, sep=' ', alwayssign=True, pad=True, precision=2)
 
     # Add one or more comment lines
-    fcct.meta['comments'] = [f'Calibrators for {star_name} (RA: {star_ra}, DEC: {star_dec}, '
-                             f'V Mag: {star_v_mag:.2f})']
+    if type(star_v_mag) == np.ma.core.MaskedConstant:
+        star_v_mag = "--"
+        fcct.meta['comments'] = [f'Calibrators for {star_name} (RA: {star_ra}, DEC: {star_dec}, '
+                                 f'V Mag: {star_v_mag})']
+
+    else:
+        fcct.meta['comments'] = [f'Calibrators for {star_name} (RA: {star_ra}, DEC: {star_dec}, '
+                                 f'V Mag: {star_v_mag:.2f})']
+        
     fcct.write(f'{star_name}_Calibrators.txt', format='ascii.fixed_width', delimiter="", overwrite=True)
 
     t2 = time.perf_counter()
@@ -247,23 +286,17 @@ def S_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
         print(f"-->{GREEN}Query complete!{RESET}")
         print(f"---->Query results: V mag = {jmmc_result['Vmag'][0]:.2f}, H mag = {jmmc_result['Hmag'][0]:.2f}, "
               f"UDDH = {jmmc_result['UDDH'][0]:.3f}")
-        if (jmmc_result['Vmag'] < 9) |  (jmmc_result['Hmag'] < 9) | (jmmc_result['Kmag'] < 9) | (jmmc_result['UDDH'] > 0.5):
+        if (jmmc_result['Vmag'] < 11) |  (jmmc_result['Hmag'] < 10.5) | (jmmc_result['Kmag'] < 10.5) | (jmmc_result['UDDH'] >= 0.4):
             print(f"-->{RED}{calibrator_name} fails JMMC Stellar Diameters Catalogue (JSDC) checks!{RESET}")
             check_pass_count -= 1
-            if jmmc_result['Vmag'] > 10.49:
-                print(f"---->{RED}Calibrator Vmag > 10.49! May be too faint for reliable AO acquisition!{RESET}")
-            if jmmc_result['Vmag'] < 9:
-                print(f"---->{RED}Calibrator Vmag < 9! May be too bright for reliable AO acquisition!{RESET}")
+            if jmmc_result['Vmag'] > 11:
+                print(f"---->{RED}Calibrator Vmag > 11! May be too faint for reliable AO acquisition!{RESET}")
             if jmmc_result['Hmag'] > 10.49:
-                print(f"---->{RED}Calibrator Hmag > 10.49! May be too faint for reliable AO acquisition!{RESET}")
-            if jmmc_result['Hmag'] < 9:
-                print(f"---->{RED}Calibrator Hmag < 9! May be too bright for reliable AO acquisition!{RESET}")
+                print(f"---->{RED}Calibrator Hmag > 10.5! May be too faint for reliable AO acquisition!{RESET}")
             if jmmc_result['Kmag'] > 10.49:
-                print(f"---->{RED}Calibrator Kmag > 10.49! May be too faint for reliable AO acquisition!{RESET}")
-            if jmmc_result['Kmag'] < 9:
-                print(f"---->{RED}Calibrator Kmag < 9! May be too bright for reliable AO acquisition!{RESET}")
-            if jmmc_result['UDDH'] > 0.5:
-                print(f"---->{RED}Calibrator UDDH > 0.5!{RESET}")
+                print(f"---->{RED}Calibrator Kmag > 10.5! May be too faint for reliable AO acquisition!{RESET}")
+            if jmmc_result['UDDH'] >= 0.4:
+                print(f"---->{RED}Calibrator UDDH >= 0.4!{RESET}")
         else:
             print(f"-->{GREEN}{calibrator_name} passes JMMC Stellar Diameters Catalogue (JSDC) checks!{RESET}")
             pass
@@ -286,7 +319,7 @@ def S_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
         gaia_result = gaia_result[0]
         print(f"-->{GREEN}Query complete!{RESET}")
         if len(gaia_result) > 1:
-            print(f"-->{RED}Warning: Potential calibrator has Gaia DR3 companions within 10\"{RESET}")
+            print(f"-->{RED}Warning: Potential calibrator has Gaia DR3 companions within 10{RESET}")
             if gaia_comp_check:
                 check_pass_count -= 1
                 print(f"---->Companions shown below. _r corresponds to distance from calibrator in arcseconds")
@@ -319,32 +352,52 @@ def S_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
                 print(f"-->{GREEN}{calibrator_name} passes Gaia DR3 Catalogue checks!{RESET}")
                 pass
 
-    # Cross-check with Kervella catalogue for binarity (should all be 0)
-    vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "DMS", "W", "BinH", "BinG2"], catalog="J/A+A/623/A72")
-    print(f"-->Querying {BLUE}Kervella et al. 2019 Catalogue{RESET}...")
+    # Cross-check with Kervella catalogue for binarity (should all be 0 or <3 for "snr" columns)
+    vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "DMS", "W", "BinHG1", "BinH2G2", "BinH2EG3b", "snrPMaHG1",
+                             "snrPMaH2G2", "snrPMaH2EG3b"], catalog="J/A+A/657/A7/tablea1")
+    print(f"-->Querying {BLUE}Kervella et al. 2022 Catalogue{RESET}...")
     kervella_result = vizier.query_region(f"{calibrator_name}", radius="5s")
     if len(kervella_result) > 0:
         print(f"-->{GREEN}Query complete!{RESET}")
         print(f"---->Query results: DMS = {kervella_result[0]['DMS'][0]}, W = {kervella_result[0]['W'][0]}, "
-              f"BinH = {kervella_result[0]['BinH'][0]}, BinG2 = {kervella_result[0]['BinG2'][0]}")
-        if ((kervella_result[0]['DMS'] != 0) | (kervella_result[0]['W'] != 0) | (kervella_result[0]['BinH'] != 0)
-                | kervella_result[0]['BinG2'] != 0):
-            print(f"-->{RED}{calibrator_name} fails Kervella et al. 2019 Catalogue checks!{RESET}")
+              f"BinHG1 = {kervella_result[0]['BinHG1'][0]}, BinH2G2 = {kervella_result[0]['BinH2G2'][0]}, "
+              f"BinH2EG3b = {kervella_result[0]['BinH2EG3b'][0]}, snrPMaHG1 = {kervella_result[0]['snrPMaHG1'][0]:.2f}, "
+              f"snrPMaH2G2 = {kervella_result[0]['snrPMaH2G2'][0]:.2f}, snrPMaH2EG3b = {kervella_result[0]['snrPMaH2EG3b'][0]:.2f}")
+
+        # if ((kervella_result[0]['DMS'] != 0) | (kervella_result[0]['W'] != 0) | (kervella_result[0]['BinHG1'] != 0)
+        #         | (kervella_result[0]['BinH2G2'] != 0) | (kervella_result[0]['BinH2EG3b'] != 0) | (kervella_result[0]['snrPMaHG1'][0] > 3)
+        #         | (kervella_result[0]['snrPMaH2G2'][0] > 3) | (kervella_result[0]['snrPMaH2EG3b'][0] > 3)):
+    
+
+        if (((kervella_result[0]['DMS'] != 0) and (kervella_result[0]['DMS'] is not np.ma.masked)) or ((kervella_result[0]['W'] != 0) and (kervella_result[0]['W'] is not np.ma.masked)) or 
+            ((kervella_result[0]['BinHG1'] != 0) and (kervella_result[0]['BinHG1'] is not np.ma.masked)) or ((kervella_result[0]['BinH2G2'] != 0) and (kervella_result[0]['BinH2G2'] is not np.ma.masked)) or 
+            ((kervella_result[0]['BinH2EG3b'] != 0) and (kervella_result[0]['BinH2EG3b'] is not np.ma.masked)) or ((kervella_result[0]['snrPMaHG1'][0] > 3) and ((kervella_result[0]['snrPMaHG1'][0] is not np.ma.masked)))
+            or ((kervella_result[0]['snrPMaH2G2'][0] > 3) and (kervella_result[0]['snrPMaH2G2'][0] is not np.ma.masked)) or ((kervella_result[0]['snrPMaH2EG3b'][0] > 3) and (kervella_result[0]['snrPMaH2EG3b'][0] is not np.ma.masked))):
+
+            print(f"-->{RED}{calibrator_name} fails Kervella et al. 2022 Catalogue checks!{RESET}")
             check_pass_count -= 5
             if kervella_result[0]['DMS'] != 0:
                 print(f"---->{RED}Calibrator DMS ≠ 0!{RESET}")
             if kervella_result[0]['W'] != 0:
                 print(f"---->{RED}Calibrator W ≠ 0!{RESET}")
-            if kervella_result[0]['BinH'] != 0:
-                print(f"---->{RED}Calibrator BinH ≠ 0!{RESET}")
-            if kervella_result[0]['BinG2'] != 0:
-                print(f"---->{RED}Calibrator BinG2 ≠ 0!{RESET}")
+            if kervella_result[0]['BinHG1'] != 0:
+                print(f"---->{RED}Calibrator BinHG1 ≠ 0!{RESET}")
+            if kervella_result[0]['BinH2G2'] != 0:
+                print(f"---->{RED}Calibrator BinH2G2 ≠ 0!{RESET}")
+            if kervella_result[0]['BinH2EG3b'] != 0:
+                print(f"---->{RED}Calibrator BinH2EG3b ≠ 0!{RESET}")
+            if kervella_result[0]['snrPMaHG1'] > 3:
+                print(f"---->{RED}Calibrator snrPMaHG1 > 3!{RESET}")
+            if kervella_result[0]['snrPMaH2G2'] > 3:
+                print(f"---->{RED}Calibrator snrPMaH2G2 > 3!{RESET}")
+            if kervella_result[0]['snrPMaH2EG3b'] > 3:
+                print(f"---->{RED}Calibrator snrPMaH2EG3b > 3!{RESET}")
         else:
-            print(f"-->{GREEN}{calibrator_name} passes Kervella et al. 2019 Catalogue checks!{RESET}")
+            print(f"-->{GREEN}{calibrator_name} passes Kervella et al. 2022 Catalogue checks!{RESET}")
             pass
 
     else:
-        print(f"-->{ORANGE}Warning: {calibrator_name} not found in Kervella et al. 2019 Catalogue "
+        print(f"-->{ORANGE}Warning: {calibrator_name} not found in Kervella et al. 2022 Catalogue "
               f"— check against other catalogues!{RESET}")
         check_pass_count -= 1
 
