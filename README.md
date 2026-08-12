@@ -192,7 +192,7 @@ The latest version of `CATCH` has been developed for:
 - numpy>=1.24.4
 
 ## Acknowledgments
-- If you used `CATCH` to help with your observations, please consider starring the GitHub repository, and please include the following acknowledgement in your publications: 
+- If you used `CATCH` to help with your observations, please consider starring the GitHub repository and including the following acknowledgement in your publications: 
   - _This work made use of CATCH, CHARA Array's Thrifty Calibrator Hunter, available at https://github.com/akshat-chaturvedi/CATCH_
 - We would like to thank Becky Flores, Dr. Gail Schaefer, Dr. Cyprien Lanthermann, at the CHARA Array for their expert guidance in defining the necessary criteria for calibrator determination (and all the observing help!)
 - Banner background image: [The exotic stellar population of Westerlund 1 (ESA/Webb, NASA & CSA, M. Zamani (ESA/Webb), M. G. Guarcello (INAF-OAPA) and the EWOCS team)](https://esawebb.org/images/potm2409a/)
