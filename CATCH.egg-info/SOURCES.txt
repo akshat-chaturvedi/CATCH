@@ -1,0 +1,8 @@
+LICENSE.txt
+README.md
+pyproject.toml
+CATCH.egg-info/PKG-INFO
+CATCH.egg-info/SOURCES.txt
+CATCH.egg-info/dependency_links.txt
+CATCH.egg-info/requires.txt
+CATCH.egg-info/top_level.txt
