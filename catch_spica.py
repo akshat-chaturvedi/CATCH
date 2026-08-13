@@ -442,7 +442,7 @@ def r_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
     final_table['_RAJ2000'] = coords.ra.to_string(unit=u.hour, sep=' ', pad=True, precision=2)
     final_table['_DEJ2000'] = coords.dec.to_string(unit=u.deg, sep=' ', alwayssign=True, pad=True, precision=2)
 
-    final_table.meta['comments'] = [f'Calibrator check for {calibrator_name} using SPICA']
+    final_table.meta['comments'] = [f'Calibrator viability report for {calibrator_name} using SPICA']
 
     final_table.write(f'{calibrator_name}_CalibratorCheck.txt', format='ascii.fixed_width', delimiter="",
                       overwrite=True)
