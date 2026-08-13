@@ -194,13 +194,13 @@ def hk_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
     if type(star_v_mag) == np.ma.core.MaskedConstant:
         star_v_mag = "--"
         fcct.meta['comments'] = [f'Calibrators for {star_name} (RA: {star_ra}, DEC: {star_dec}, '
-                                 f'V Mag: {star_v_mag})']
+                                 f'V Mag: {star_v_mag}) using MIRC-X/MYSTIC']
 
     else:
         fcct.meta['comments'] = [f'Calibrators for {star_name} (RA: {star_ra}, DEC: {star_dec}, '
-                                 f'V Mag: {star_v_mag:.2f})']
+                                 f'V Mag: {star_v_mag:.2f}) using MIRC-X/MYSTIC']
         
-    fcct.write(f'{star_name}_Calibrators.txt', format='ascii.fixed_width', delimiter="", overwrite=True)
+    fcct.write(f'{star_name}_Calibrators_MIRCX_MYSTIC.txt', format='ascii.fixed_width', delimiter="", overwrite=True)
 
     t2 = time.perf_counter()
     if len(fcct['Name']) > 0:
@@ -429,7 +429,7 @@ def hk_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
 
     final_table.meta['comments'] = [f'Calibrator viability report for {calibrator_name} using MIRC-X/MYSTIC']
 
-    final_table.write(f'{calibrator_name}_CalibratorCheck.txt', format='ascii.fixed_width', delimiter="", overwrite=True)
+    final_table.write(f'{calibrator_name}_CalibratorCheck_MIRCX_MYSTIC.txt', format='ascii.fixed_width', delimiter="", overwrite=True)
 
     t2 = time.perf_counter()
     if check_pass_count / init_check_pass_count == 1:

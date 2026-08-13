@@ -206,13 +206,13 @@ def r_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
     if type(star_v_mag) == np.ma.core.MaskedConstant:
         star_v_mag = "--"
         fcct.meta['comments'] = [f'Calibrators for {star_name} (RA: {star_ra}, DEC: {star_dec}, '
-                                 f'V Mag: {star_v_mag})']
+                                 f'V Mag: {star_v_mag}) using SPICA']
 
     else:
         fcct.meta['comments'] = [f'Calibrators for {star_name} (RA: {star_ra}, DEC: {star_dec}, '
-                                 f'V Mag: {star_v_mag:.2f})']
+                                 f'V Mag: {star_v_mag:.2f}) using SPICA']
         
-    fcct.write(f'{star_name}_Calibrators.txt', format='ascii.fixed_width', delimiter="", overwrite=True)
+    fcct.write(f'{star_name}_Calibrators_SPICA.txt', format='ascii.fixed_width', delimiter="", overwrite=True)
 
     t2 = time.perf_counter()
     if len(fcct['Name']) > 0:
@@ -444,7 +444,7 @@ def r_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
 
     final_table.meta['comments'] = [f'Calibrator viability report for {calibrator_name} using SPICA']
 
-    final_table.write(f'{calibrator_name}_CalibratorCheck.txt', format='ascii.fixed_width', delimiter="",
+    final_table.write(f'{calibrator_name}_CalibratorCheck_SPICA.txt', format='ascii.fixed_width', delimiter="",
                       overwrite=True)
 
     t2 = time.perf_counter()
