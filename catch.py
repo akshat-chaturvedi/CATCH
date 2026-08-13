@@ -103,21 +103,12 @@ def questions(instrument: str):
 
                     try:
                         gaia_radius = float(gaia_radius)
-                        if instrument == "HK":
-                            HK_cal_finder(
-                                target_star_name,
-                                gaia_radius
-                            )
+                        if instrument == "HK" or instrument == "" :
+                            hk_cal_finder(target_star_name, gaia_radius)
                         elif instrument == "S":
-                            S_cal_finder(
-                                target_star_name,
-                                gaia_radius
-                            )
+                            s_cal_finder(target_star_name, gaia_radius)
                         elif instrument == "R":
-                            R_cal_finder(
-                                target_star_name,
-                                gaia_radius           
-                            )
+                            r_cal_finder(target_star_name, gaia_radius)
 
                         break
 
@@ -127,18 +118,12 @@ def questions(instrument: str):
                         break
 
             else:
-                if instrument == "HK":
-                    HK_cal_finder(
-                        target_star_name
-                    )
+                if instrument == "HK" or instrument == "" :
+                    hk_cal_finder(target_star_name)
                 elif instrument == "S":
-                    S_cal_finder(
-                        target_star_name
-                    )
+                    s_cal_finder(target_star_name)
                 elif instrument == "R":
-                    R_cal_finder(
-                        target_star_name         
-                    )
+                    r_cal_finder(target_star_name)
 
         elif main_question in ["B", "b"]:
             multiple_cal_check = input(
@@ -158,35 +143,20 @@ def questions(instrument: str):
                 ).strip()
 
                 if gaia_question in ["Y", "y"]:
-                    if instrument == "HK":
-                        HK_cal_checker(
-                            target_star_name,
-                            gaia_comp_check=True
-                        )
+                    if instrument == "HK" or instrument == "" :
+                        hk_cal_checker(target_star_name, gaia_comp_check=True)
                     elif instrument == "S":
-                        S_cal_checker(
-                            target_star_name,
-                            gaia_comp_check=True
-                        )
+                        s_cal_checker(target_star_name, gaia_comp_check=True)
                     elif instrument == "R":
-                        R_cal_checker(
-                            target_star_name,
-                            gaia_comp_check=True        
-                        )
+                        r_cal_checker(target_star_name, gaia_comp_check=True)
 
                 else:
-                    if instrument == "HK":
-                        HK_cal_checker(
-                            target_star_name
-                        )
+                    if instrument == "HK" or instrument == "" :
+                        hk_cal_checker(target_star_name)
                     elif instrument == "S":
-                        S_cal_checker(
-                            target_star_name
-                        )
+                        s_cal_checker(target_star_name)
                     elif instrument == "R":
-                        R_cal_checker(
-                            target_star_name        
-                        )                    
+                        r_cal_checker(target_star_name)
 
             elif multiple_cal_check in ["M", "m"]:
                 gaia_question = input(
@@ -208,35 +178,20 @@ def questions(instrument: str):
 
                 for target_star_name in target_star_name_list:
                     if gaia_question in ["Y", "y"]:
-                        if instrument == "HK":
-                            HK_cal_checker(
-                                target_star_name,
-                                gaia_comp_check=True
-                            )
+                        if instrument == "HK" or instrument == "" :
+                            hk_cal_checker(target_star_name, gaia_comp_check=True)
                         elif instrument == "S":
-                            S_cal_checker(
-                                target_star_name,
-                                gaia_comp_check=True
-                            )
+                            s_cal_checker(target_star_name, gaia_comp_check=True)
                         elif instrument == "R":
-                            R_cal_checker(
-                                target_star_name,
-                                gaia_comp_check=True       
-                            )    
+                            r_cal_checker(target_star_name, gaia_comp_check=True)
 
                     else:
-                        if instrument == "HK":
-                            HK_cal_checker(
-                                target_star_name
-                            )
+                        if instrument == "HK" or instrument == "" :
+                            hk_cal_checker(target_star_name)
                         elif instrument == "S":
-                            S_cal_checker(
-                                target_star_name
-                            )
+                            s_cal_checker(target_star_name)
                         elif instrument == "R":
-                            R_cal_checker(
-                                target_star_name   
-                            ) 
+                            r_cal_checker(target_star_name)
 
         else:
             exit(
@@ -358,34 +313,19 @@ def questions(instrument: str):
 
             if args.gaia:
                 if args.instrument == "HK":
-                    HK_cal_checker(
-                        args.science_target,
-                        gaia_comp_check=5
-                    )
+                    hk_cal_checker(args.science_target, gaia_comp_check=5)
                 elif args.instrument == "S":
-                    S_cal_checker(
-                        args.science_target,
-                        gaia_comp_check=5
-                    )
+                    s_cal_checker(args.science_target, gaia_comp_check=5)
                 elif args.instrument == "R":
-                    R_cal_checker(
-                        args.science_target,
-                        gaia_comp_check=5  
-                    ) 
+                    r_cal_checker(args.science_target, gaia_comp_check=5)
 
             else:
                 if args.instrument == "HK":
-                    HK_cal_checker(
-                        args.science_target
-                    )
+                    hk_cal_checker(args.science_target)
                 elif args.instrument == "S":
-                    S_cal_checker(
-                        args.science_target
-                    )
+                    s_cal_checker(args.science_target)
                 elif args.instrument == "R":
-                    R_cal_checker(
-                        args.science_target  
-                    )                 
+                    r_cal_checker(args.science_target)
 
         elif args.verify:
             print(f"Vizier server: {GREEN}{conf.server}{RESET}")
@@ -414,34 +354,19 @@ def questions(instrument: str):
             if args.single:
                 if args.gaia:
                     if args.instrument == "HK":
-                        HK_cal_checker(
-                            args.cand_calibrator,
-                            gaia_comp_check=True
-                        )
+                        hk_cal_checker(args.cand_calibrator, gaia_comp_check=True)
                     elif args.instrument == "S":
-                        S_cal_checker(
-                            args.cand_calibrator,
-                            gaia_comp_check=True
-                        )
+                        s_cal_checker(args.cand_calibrator, gaia_comp_check=True)
                     elif args.instrument == "R":
-                        R_cal_checker(
-                            args.cand_calibrator,
-                            gaia_comp_check=True
-                        ) 
+                        r_cal_checker(args.cand_calibrator, gaia_comp_check=True)
 
                 else:
                     if args.instrument == "HK":
-                        HK_cal_checker(
-                            args.cand_calibrator
-                        )
+                        hk_cal_checker(args.cand_calibrator)
                     elif args.instrument == "S":
-                        S_cal_checker(
-                            args.cand_calibrator
-                        )
+                        s_cal_checker(args.cand_calibrator)
                     elif args.instrument == "R":
-                        R_cal_checker(
-                            args.cand_calibrator
-                        ) 
+                        r_cal_checker(args.cand_calibrator)
 
             elif args.multiple:
                 target_star_name_list = [
@@ -453,41 +378,26 @@ def questions(instrument: str):
                 for target_star_name in target_star_name_list:
                     if args.gaia:
                         if args.instrument == "HK":
-                            HK_cal_checker(
-                                target_star_name,
-                                gaia_comp_check=True
-                            )
+                            hk_cal_checker(target_star_name, gaia_comp_check=True)
                         elif args.instrument == "S":
-                            S_cal_checker(
-                                target_star_name,
-                                gaia_comp_check=True
-                            )
+                            s_cal_checker(target_star_name, gaia_comp_check=True)
                         elif args.instrument == "R":
-                            R_cal_checker(
-                                target_star_name,
-                                gaia_comp_check=True
-                            ) 
+                            r_cal_checker(target_star_name, gaia_comp_check=True)
 
                     else:
                         if args.instrument == "HK":
-                            HK_cal_checker(
-                                target_star_name
-                            )
+                            hk_cal_checker(target_star_name)
                         elif args.instrument == "S":
-                            S_cal_checker(
-                                target_star_name
-                            )
+                            s_cal_checker(target_star_name)
                         elif args.instrument == "R":
-                            R_cal_checker(
-                                target_star_name
-                            ) 
+                            r_cal_checker(target_star_name)
 
 
 
 def main():
     instrument_question = input(
         f"What instrument is this for? \n"
-        f"Type {BLUE}HK{RESET} for MIRC-X and MYSTIC; type {YELLOW}S{RESET} for Silmaril; type {RED}R{RESET} for Spica\n"
+        f"Type [{BLUE}HK{RESET}] for MIRC-X and MYSTIC; type {YELLOW}S{RESET} for Silmaril; type {RED}R{RESET} for Spica\n"
     ).strip().upper()
     questions(instrument_question)
 

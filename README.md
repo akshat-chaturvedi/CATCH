@@ -194,6 +194,6 @@ The latest version of `CATCH` has been developed for:
 ## Acknowledgments
 - If you used `CATCH` to help with your observations, please consider starring the GitHub repository and including the following acknowledgement in your publications: 
   - _This work made use of CATCH, CHARA Array's Thrifty Calibrator Hunter, available at https://github.com/akshat-chaturvedi/CATCH_
-- We would like to thank Becky Flores, Dr. Gail Schaefer, and Dr. Cyprien Lanthermann at the CHARA Array for their guidance in defining the necessary criteria for good calibrators for MIRC-X/MYSTIC and Silmaril (and all the observing help!)
+- We would like to thank Becky Flores, Dr. Gail Schaefer, and Dr. Cyprien Lanthermann at the CHARA Array for their guidance in defining the necessary criteria for good calibrators for MIRC-X/MYSTIC and Silmaril
 - We would like to thank Dr. Denis Mourard at Observatoire de la Côte d’Azur for his guidance in defining the necessary criteria for good calibrators for SPICA
 - Banner background image: [The exotic stellar population of Westerlund 1 (ESA/Webb, NASA & CSA, M. Zamani (ESA/Webb), M. G. Guarcello (INAF-OAPA) and the EWOCS team)](https://esawebb.org/images/potm2409a/)

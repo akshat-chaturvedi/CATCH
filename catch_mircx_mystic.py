@@ -1,15 +1,8 @@
 #!/usr/bin/env python
 
-"""catch.py: A program to cross-match across multiple Vizier databases to return suitable calibrator stars for
-observations with the CHARA Array"""
+"""catch_mircx_mystic.py: A program to cross-match across multiple Vizier databases to return suitable calibrator stars for
+observations with the CHARA Array using the MIRC-X/MYSTIC beam combiners"""
 
-__author__ = "Akshat S. Chaturvedi and Mahir M. Patel"
-__credits__ = ["Akshat S. Chaturvedi", "Mahir M. Patel", "Colin Kane", "Becky Flores", "Jeremy Jones"]
-__license__ = "MIT"
-__version__ = "2.0 | 2026/08/12" #Added Instruments for MIRC-X/MYSTIC, SILMARIL, and SPICA
-__maintainer__ = "Akshat S. Chaturvedi"
-__email__ = "achaturvedi3@gsu.edu"
-__status__ = "Production"
 
 from astroquery.vizier import Vizier, conf
 from astroquery.simbad import Simbad
@@ -21,9 +14,6 @@ import collections
 import numpy as np
 import warnings
 from astroquery.exceptions import NoResultsWarning
-import requests
-from argparse import ArgumentParser
-import sys
 
 Vizier.clear_cache()
 
@@ -39,13 +29,8 @@ RESET = '\033[0m'
 ITALIC = '\033[3m'
 BLINK = '\033[5m'
 
-# __version__ = '1.0 | 2025/08/26' # First release version :)
-# __version__ = '1.1 | 2025/08/27' # Changes to file output and printout formats
-# __version__ = '1.2 | 2025/10/31' # Added e_LDD to print output, vizier server error messages
-# __version__ = '1.3 | 2026/02/11' #  Added server switch capability if normal Vizier server is down, updated README
 
-
-def HK_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> None:
+def hk_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> None:
     """
     Finds viable calibrator stars within 10 degrees for CHARA Array interferometric targets. Successful calibrators pass
     magnitude and diameter checks from the JMMC Stellar Diameters Catalogue
@@ -122,7 +107,7 @@ def HK_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
                                   catalog="I/355/gaiadr3")
 
         # Now can print out each entry and catch Gaia DR3 companions
-        vizier_neighbors.ROW_LIMIT = 2000
+        vizier_neighbors.ROW_LIMIT = 100
 
         print(f"-->Checking for close Gaia companions within {gaia_comp_check}\"")
         neighbors = vizier_neighbors.query_region(gaia_result, radius=f"{gaia_comp_check}s")[0]
@@ -141,22 +126,12 @@ def HK_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
     gaia_cols = Table([gaia_result['IPDfmp'], gaia_result['RUWE'], gaia_result['RVamp'], gaia_result['Vbroad']])
 
     first_cross_check_table = hstack([jmmc_cols, gaia_cols])
+
     # Cross-check with Kervella catalogue for binarity (should all be 0 or <3 for "snr" columns)
-    # vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "DMS", "W", "BinH", "BinG2"], catalog="J/A+A/623/A72")
-    # vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "DMS", "W", "BinHG1", "BinH2G2", "BinH2EG3b", "snrPMaHG1",
-    #                          "snrPMaH2G2", "snrPMaH2EG3b"], catalog="J/A+A/657/A7")
-    vizier = Vizier(columns=["*"], catalog="J/A+A/657/A7/tablea1")
+    vizier = Vizier(columns=["DMS", "W", "*"], catalog="J/A+A/657/A7/tablea1")
     print(f"-->Querying {BLUE}Kervella et al. 2022 Catalogue{RESET}...")
-    # kervella_result = vizier.query_region(gaia_result, radius="10s", column_filters={"DMS": "=0", "W": "=0",
-    #                                                                        "BinH": "=0", "BinG2": "=0"})
 
     coords = SkyCoord(ra=gaia_result['_RAJ2000'], dec=gaia_result['_DEJ2000'], unit=(u.deg, u.deg))
-
-    # kervella_result = vizier.query_region(coords, radius="10s", column_filters={"DMS": "=0", "W": "=0", "BinHG1": "=0", "BinH2G2": "=0",
-    #                                                                                  "BinH2EG3b": "=0",
-    #                                                                                  "snrPMaHG1": "<3.0",
-    #                                                                                  "snrPMaH2G2": "<3.0",
-    #                                                                                  "snrPMaH2EG3b": "<3.0"})
 
     kervella_result = vizier.query_region(coords, radius="10s")
 
@@ -167,7 +142,8 @@ def HK_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
         exit("ERROR: No calibrators found within 10 degrees of your target in the Kervella et al. 2022 Catalogue. "
              "Consider modifying your constraints!")
 
-    mask = (
+    mask = ((kervella_result["DMS"] == 0) &
+            (kervella_result["W"] == 0) &
             (kervella_result["BinHG1"] == 0) &
             (kervella_result["BinH2G2"] == 0) &
             (kervella_result["BinH2EG3b"] == 0) &
@@ -181,11 +157,9 @@ def HK_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
 
     idx, sep2d, _ = k_coords.match_to_catalog_sky(coords)
 
-    # kervella_cols = Table(
-        # [kervella_result['DMS'], kervella_result['W'], kervella_result['BinH'], kervella_result['BinG2']])
-    kervella_cols = Table([kervella_filtered['BinHG1'], kervella_filtered['BinH2G2'],
-                           kervella_filtered['BinH2EG3b'], kervella_filtered['snrPMaHG1'], kervella_filtered['snrPMaH2G2'],
-                           kervella_filtered['snrPMaH2EG3b']])
+    kervella_cols = Table([kervella_filtered['DMS'], kervella_filtered['W'], kervella_filtered['BinHG1'],
+                           kervella_filtered['BinH2G2'], kervella_filtered['BinH2EG3b'], kervella_filtered['snrPMaHG1'],
+                           kervella_filtered['snrPMaH2G2'], kervella_filtered['snrPMaH2EG3b']])
 
     second_cross_check_table = hstack([first_cross_check_table[idx], kervella_cols])
 
@@ -236,7 +210,7 @@ def HK_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
 
     return
 
-def HK_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
+def hk_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
     """
     Checks chosen calibrator stars using magnitude and diameter checks from the JMMC Stellar Diameters Catalogue
     (https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=II/346/jsdc_v2) and binarity checks from the Gaia DR3
@@ -299,10 +273,15 @@ def HK_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
             print(f"-->{GREEN}{calibrator_name} passes JMMC Stellar Diameters Catalogue (JSDC) checks!{RESET}")
             pass
 
+        jmmc_table = Table([jmmc_result['Name'], jmmc_result['_RAJ2000'],
+                       jmmc_result['_DEJ2000'], jmmc_result['SpType'], jmmc_result['Vmag'], jmmc_result['Hmag'],
+                       jmmc_result['UDDH']])
+
     else:
         print(f"-->{ORANGE}{calibrator_name} not found in JMMC Stellar Diameters Catalogue (JSDC) {RESET} — "
               f"Check against other catalogues!{RESET}")
         check_pass_count -= 1
+        jmmc_table = Table([])
 
     # Cross-check with Gaia DR3 catalogue for IPDfmp (<2), RUWE (<1.4), RVamp, and Vbroad<100 binarity and rapid
     # rotation checks
@@ -312,21 +291,18 @@ def HK_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
     gaia_result = vizier.query_region(f"{calibrator_name}", radius="10s")
 
     if len(gaia_result) == 0:
+        gaia_table = Table([])
         exit(f"ERROR: {calibrator_name} not found in Gaia DR3!")
     else:
         gaia_result = gaia_result[0]
         print(f"-->{GREEN}Query complete!{RESET}")
-        if len(gaia_result) > 1:
-            print(f"-->{RED}Warning: Potential calibrator has Gaia DR3 companions within 10\"{RESET}")
-            if gaia_comp_check:
-                check_pass_count -= 1
-                print(f"---->Companions shown below. _r corresponds to distance from calibrator in arcseconds")
-                print(gaia_result[1:])
 
         if gaia_result[0]['Vbroad'] is np.ma.masked:
-            print(f"-->{RED}Warning: Calibrator does not have a listed Vbroad!{RESET}")
-            check_pass_count -= 5
             print(f"---->Query results: IPDfmp = {gaia_result[0]['IPDfmp']:.1f}, RUWE = {gaia_result[0]['RUWE']:.2f}")
+            print(f"-->{RED}Warning: Calibrator does not have a listed Vbroad! Please refer to spectral type to infer "
+                  f"possible rotation rate.{RESET}")
+            gaia_result[0]['Vbroad'] = None
+            check_pass_count -= 1
 
         else:
             print(f"---->Query results: IPDfmp = {gaia_result[0]['IPDfmp']:.1f}, "
@@ -349,6 +325,17 @@ def HK_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
             else:
                 print(f"-->{GREEN}{calibrator_name} passes Gaia DR3 Catalogue checks!{RESET}")
                 pass
+
+        if len(gaia_result) > 1:
+            print(f"-->{RED}Warning: Potential calibrator has Gaia DR3 companions within 10\"{RESET}")
+            if gaia_comp_check:
+                check_pass_count -= 1
+                print(f"---->Companions shown below. _r corresponds to distance from calibrator in arcseconds")
+                print("-"*30+"START GAIA COMPANIONS"+"-"*30)
+                print(gaia_result[1:])
+                print("-"*31+"END GAIA COMPANIONS"+"-"*31)
+
+        gaia_table = Table([gaia_result['IPDfmp'], gaia_result['RUWE'], gaia_result['Vbroad']])[0]
 
     # Cross-check with Kervella catalogue for binarity (should all be 0 or <3 for "snr" columns)
     vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "DMS", "W", "BinHG1", "BinH2G2", "BinH2EG3b", "snrPMaHG1",
@@ -394,10 +381,16 @@ def HK_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
             print(f"-->{GREEN}{calibrator_name} passes Kervella et al. 2022 Catalogue checks!{RESET}")
             pass
 
+        kervella_table = Table([kervella_result[0]['DMS'], kervella_result[0]['W'], kervella_result[0]['BinHG1'],
+                                kervella_result[0]['BinH2G2'], kervella_result[0]['BinH2EG3b'],
+                                kervella_result[0]['snrPMaHG1'], kervella_result[0]['snrPMaH2G2'],
+                                kervella_result[0]['snrPMaH2EG3b']])
+
     else:
         print(f"-->{ORANGE}Warning: {calibrator_name} not found in Kervella et al. 2022 Catalogue "
               f"— check against other catalogues!{RESET}")
         check_pass_count -= 1
+        kervella_table = Table([])
 
 
     # Cross-check with Cruzalebes catalogue for possible use as calibrators (CalFlag and IRflag should be 0)
@@ -420,10 +413,23 @@ def HK_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
             print(f"-->{GREEN}{calibrator_name} passes Cruzalebes et al. 2019 Catalogue (MDFC) checks!{RESET}")
             pass
 
+        cruzalebes_table = Table([cruzalebes_result['CalFlag'], cruzalebes_result['IRflag']])
+
     else:
         print(f"-->{ORANGE}{calibrator_name} not found in Cruzalebes et al. 2019 Catalogue (MDFC) — "
               f"check against other catalogues!{RESET}")
         check_pass_count -= 1
+        cruzalebes_table = Table([])
+
+    final_table = hstack([jmmc_table, gaia_table, kervella_table, cruzalebes_table])
+
+    coords = SkyCoord(ra=final_table['_RAJ2000'].data * u.deg, dec=final_table['_DEJ2000'].data * u.deg, frame='icrs')
+    final_table['_RAJ2000'] = coords.ra.to_string(unit=u.hour, sep=' ', pad=True, precision=2)
+    final_table['_DEJ2000'] = coords.dec.to_string(unit=u.deg, sep=' ', alwayssign=True, pad=True, precision=2)
+
+    final_table.meta['comments'] = [f'Calibrator check for {calibrator_name} using MIRC-X/MYSTIC']
+
+    final_table.write(f'{calibrator_name}_CalibratorCheck.txt', format='ascii.fixed_width', delimiter="", overwrite=True)
 
     t2 = time.perf_counter()
     if check_pass_count / init_check_pass_count == 1:
