@@ -3,7 +3,7 @@
 """catch_silmaril.py: A program to cross-match across multiple Vizier databases to return suitable calibrator stars for
 observations with the CHARA Array using the Silmaril beam combiner"""
 
-from astroquery.vizier import Vizier, conf
+from astroquery.vizier import Vizier
 from astroquery.simbad import Simbad
 from astropy.table import Table, hstack
 from astropy.coordinates import SkyCoord
@@ -13,25 +13,16 @@ import collections
 import numpy as np
 import warnings
 from astroquery.exceptions import NoResultsWarning
+from constants import BLUE, RED, YELLOW, GREEN, ORANGE, RESET, outfile_format, outfile_delimiter
 
 # Vizier.clear_cache()
 
 warnings.simplefilter("ignore", NoResultsWarning)
 
-RED = '\033[91m'
-GREEN = '\033[92m'
-YELLOW = '\033[93m'
-BLUE = '\033[94m'
-MAGENTA = '\033[95m'
-ORANGE = '\033[38;2;255;128;0m'
-RESET = '\033[0m'
-ITALIC = '\033[3m'
-BLINK = '\033[5m'
-
 def s_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> None:
     """
-    Finds viable calibrator stars within 10 degrees for CHARA Array interferometric targets using Silmaril. Successful calibrators pass
-    magnitude and diameter checks from the JMMC Stellar Diameters Catalogue
+    Finds viable calibrator stars within 10 degrees for CHARA Array interferometric targets using Silmaril. Successful
+    calibrators pass magnitude and diameter checks from the JMMC Stellar Diameters Catalogue
     (https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=II/346/jsdc_v2) and binarity checks from the Gaia DR3
     (https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=I/355/gaiadr3), Kervella et al. 2019
     (https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/623/A72), and Cruzalebes et al. 2019
@@ -211,7 +202,8 @@ def s_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
         fcct.meta['comments'] = [f'Calibrators for {star_name} (RA: {star_ra}, DEC: {star_dec}, '
                                  f'V Mag: {star_v_mag:.2f}) using Silmaril']
         
-    fcct.write(f'{star_name}_Calibrators_Silmaril.txt', format='ascii.fixed_width', delimiter="", overwrite=True)
+    fcct.write(f'{star_name}_Calibrators_Silmaril.txt', format=outfile_format, delimiter=outfile_delimiter,
+               overwrite=True)
 
     t2 = time.perf_counter()
     if len(fcct['Name']) > 0:
@@ -291,8 +283,8 @@ def s_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
                             jmmc_result['UDDH']])
 
     else:
-        print(f"-->{ORANGE}{calibrator_name} not found in JMMC Stellar Diameters Catalogue (JSDC) {RESET} — "
-              f"Check against other catalogues!{RESET}")
+        print(f"-->{ORANGE}{calibrator_name} not found in JMMC Stellar Diameters Catalogue (JSDC){RESET} — "
+              f"Check against other catalogues!")
         check_pass_count -= 1
         jmmc_table = Table([])
 
@@ -441,8 +433,8 @@ def s_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
 
     final_table.meta['comments'] = [f'Calibrator viability report for {calibrator_name} using Silmaril']
 
-    final_table.write(f'{calibrator_name}_CalibratorCheck_Silmaril.txt', format='ascii.fixed_width', delimiter="",
-                      overwrite=True)
+    final_table.write(f'{calibrator_name}_CalibratorCheck_Silmaril.txt', format=outfile_format,
+                      delimiter=outfile_delimiter, overwrite=True)
 
     t2 = time.perf_counter()
     if check_pass_count / init_check_pass_count == 1:

@@ -3,7 +3,7 @@
 """catch_spica.py: A program to cross-match across multiple Vizier databases to return suitable calibrator stars for
 observations with the CHARA Array using the SPICA beam combiner"""
 
-from astroquery.vizier import Vizier, conf
+from astroquery.vizier import Vizier
 from astroquery.simbad import Simbad
 from astropy.table import Table, hstack
 from astropy.coordinates import SkyCoord
@@ -13,25 +13,16 @@ import collections
 import numpy as np
 import warnings
 from astroquery.exceptions import NoResultsWarning
+from constants import BLUE, RED, YELLOW, GREEN, ORANGE, RESET, outfile_format, outfile_delimiter
 
 # Vizier.clear_cache()
 
 warnings.simplefilter("ignore", NoResultsWarning)
 
-RED = '\033[91m'
-GREEN = '\033[92m'
-YELLOW = '\033[93m'
-BLUE = '\033[94m'
-MAGENTA = '\033[95m'
-ORANGE = '\033[38;2;255;128;0m'
-RESET = '\033[0m'
-ITALIC = '\033[3m'
-BLINK = '\033[5m'
-
 def r_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> None:
     """
-    Finds viable calibrator stars within 10 degrees for CHARA Array interferometric targets using SPICA. Successful calibrators pass
-    magnitude and diameter checks from the JMMC Stellar Diameters Catalogue
+    Finds viable calibrator stars within 10 degrees for CHARA Array interferometric targets using SPICA. Successful
+    calibrators pass magnitude and diameter checks from the JMMC Stellar Diameters Catalogue
     (https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=II/346/jsdc_v2) and binarity checks from the Gaia DR3
     (https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=I/355/gaiadr3), Kervella et al. 2019
     (https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/623/A72), and Cruzalebes et al. 2019
@@ -127,21 +118,10 @@ def r_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
     first_cross_check_table = hstack([jmmc_cols, gaia_cols])
 
     # Cross-check with Kervella catalogue for binarity (should all be 0 or <3 for "snr" columns)
-    # vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "DMS", "W", "BinH", "BinG2"], catalog="J/A+A/623/A72")
-    # vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "DMS", "W", "BinHG1", "BinH2G2", "BinH2EG3b", "snrPMaHG1",
-    #                          "snrPMaH2G2", "snrPMaH2EG3b"], catalog="J/A+A/657/A7")
     vizier = Vizier(columns=["DMS", "W", "*"], catalog="J/A+A/657/A7/tablea1")
     print(f"-->Querying {BLUE}Kervella et al. 2022 Catalogue{RESET}...")
-    # kervella_result = vizier.query_region(gaia_result, radius="10s", column_filters={"DMS": "=0", "W": "=0",
-    #                                                                        "BinH": "=0", "BinG2": "=0"})
 
     coords = SkyCoord(ra=gaia_result['_RAJ2000'], dec=gaia_result['_DEJ2000'], unit=(u.deg, u.deg))
-
-    # kervella_result = vizier.query_region(coords, radius="10s", column_filters={"DMS": "=0", "W": "=0", "BinHG1": "=0", "BinH2G2": "=0",
-    #                                                                                  "BinH2EG3b": "=0",
-    #                                                                                  "snrPMaHG1": "<3.0",
-    #                                                                                  "snrPMaH2G2": "<3.0",
-    #                                                                                  "snrPMaH2EG3b": "<3.0"})
 
     kervella_result = vizier.query_region(coords, radius="10s")
 
@@ -167,8 +147,6 @@ def r_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
 
     idx, sep2d, _ = k_coords.match_to_catalog_sky(coords)
 
-    # kervella_cols = Table(
-        # [kervella_result['DMS'], kervella_result['W'], kervella_result['BinH'], kervella_result['BinG2']])
     kervella_cols = Table([kervella_filtered['BinHG1'], kervella_filtered['BinH2G2'],
                            kervella_filtered['BinH2EG3b'], kervella_filtered['snrPMaHG1'], kervella_filtered['snrPMaH2G2'],
                            kervella_filtered['snrPMaH2EG3b']])
@@ -212,7 +190,8 @@ def r_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
         fcct.meta['comments'] = [f'Calibrators for {star_name} (RA: {star_ra}, DEC: {star_dec}, '
                                  f'V Mag: {star_v_mag:.2f}) using SPICA']
         
-    fcct.write(f'{star_name}_Calibrators_SPICA.txt', format='ascii.fixed_width', delimiter="", overwrite=True)
+    fcct.write(f'{star_name}_Calibrators_SPICA.txt', format=outfile_format, delimiter=outfile_delimiter,
+               overwrite=True)
 
     t2 = time.perf_counter()
     if len(fcct['Name']) > 0:
@@ -223,13 +202,11 @@ def r_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
     return
 
 
-
-
 def r_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
     """
-    Checks chosen calibrator stars using magnitude and diameter checks from the JMMC Stellar Diameters Catalogue for Silmaril
-    (https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=II/346/jsdc_v2) and binarity checks from the Gaia DR3
-    (https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=I/355/gaiadr3), Kervella et al. 2019
+    Checks chosen calibrator stars for Silmaril using magnitude and diameter checks from the JMMC Stellar Diameters
+    Catalogue (https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=II/346/jsdc_v2) and binarity checks from the Gaia
+    DR3 (https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=I/355/gaiadr3), Kervella et al. 2019
     (https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/623/A72), and Cruzalebes et al. 2019
     (https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=II/361) catalogues.
 
@@ -444,8 +421,8 @@ def r_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
 
     final_table.meta['comments'] = [f'Calibrator viability report for {calibrator_name} using SPICA']
 
-    final_table.write(f'{calibrator_name}_CalibratorCheck_SPICA.txt', format='ascii.fixed_width', delimiter="",
-                      overwrite=True)
+    final_table.write(f'{calibrator_name}_CalibratorCheck_SPICA.txt', format=outfile_format,
+                      delimiter=outfile_delimiter, overwrite=True)
 
     t2 = time.perf_counter()
     if check_pass_count / init_check_pass_count == 1:

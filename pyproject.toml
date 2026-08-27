@@ -13,5 +13,6 @@ dependencies = [
     "astropy>=5.2.2",
     "astroquery>=0.4.7",
     "numpy>=1.24.4",
+    "requests>=2.34.2",
     "scipy>=1.10.1",
 ]
