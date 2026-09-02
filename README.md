@@ -50,7 +50,8 @@ $ uv venv --python 3.10
 ### Running the code
 You can either run the code using `uv run catch.py` or with `python3 catch.py` for an interactive run. 
 
-If you are a more experienced user, and would prefer a faster use-case, you can use `CATCH` as a CLI. You can run it as such using `uv run catch.py -[FLAGS]`. For a list of usable flags, use `uv run catch.py -h`.
+If you are a more experienced user, and would prefer a faster use-case, you can use `CATCH` as a command-line interface. 
+You can run it as such using `uv run catch.py -[FLAGS]`. For a list of usable flags, use `uv run catch.py -h` (see example below).
 
 ### Example Usage — Generating List of Verified Calibrators
 You can use the built-in `main` function (the default run case) as shown in the example below to generate a list of viable calibrators for a given science target. The calibrators are saved in an `ascii` file titled **star_name_Calibrators.txt**. 
@@ -135,13 +136,44 @@ Confirmed HD190009 is likely an ideal calibrator in 4.87 seconds!
 ```
 
 ### Example Usage — Generating List of Verified Calibrators Using the CLI Mode
-You can use `CATCH` in the CLI mode to find a list of viable calibrators for a given science target as shown in the example below
+You can use `CATCH` as a command-line interface tool as shown in the example below. This is particularly helpful for multiple runs
+with the same inputs, and can be used in a shell script as well to bypass the interactive mode in such cases.
 ```
-$ uv run catch.py -f -g -t "HD89484"
+$ uv run catch.py -h
 
-        ############################ This is CATCH ############################
+        ################################ CATCH ################################
                    [C]HARA [A]rray's [T]hrifty [C]alibrator [H]unter
-                                 Version: 1.4 | 2026/03/20                           
+                                 Version: 2.1 | 2026/08/27                           
+                       https://github.com/akshat-chaturvedi/CATCH                 
+        #######################################################################
+        
+Vizier server: vizier.cds.unistra.fr
+vizier.cds.unistra.fr server up (HTML Response Code: 200)
+usage: catch.py [-h] [-i INSTRUMENT] [-f] [-t SCIENCE_TARGET] [-g] [-v] [-s] [-m] [-c CAND_CALIBRATOR] [-cl LIST_OF_CALS]
+
+options:
+  -h, --help            show this help message and exit
+  -i, --instrument INSTRUMENT
+                        Choose an instrument HK for MIRC-X and MYSTIC; type S for Silmaril; type R for Spica
+  -f, --find            Choose this option if you would like to find calibrators for a science target
+  -t, --target SCIENCE_TARGET
+                        Add the science target to find calibrators for
+  -g, --gaia            Filter calibrators by whether they have companions within 5 arcseconds in Gaia DR3
+  -v, --verify          Choose this option if you would like to check a possible calibrator's viability
+  -s, --single          Verify a single calibrator
+  -m, --multiple        Verify multiple calibrators
+  -c, --calibrator CAND_CALIBRATOR
+                        The name of the possible calibrator you want to verify, in quotes
+  -cl, --cal_list LIST_OF_CALS
+                        Add comma separated list of possible calibrators in quotes
+
+Happy fringing!
+
+$ uv run catch.py -i "HK" -f -t "HD89484"
+
+        ################################ CATCH ################################
+                   [C]HARA [A]rray's [T]hrifty [C]alibrator [H]unter
+                                 Version: 2.1 | 2026/08/27                           
                        https://github.com/akshat-chaturvedi/CATCH                 
         #######################################################################
         
@@ -152,12 +184,11 @@ Beginning calibration search for target: HD89484
 -->Query complete!
 -->Querying Gaia DR3 Catalogue...
 -->Query complete!
--->Checking for close Gaia companions within 5"
--->Querying Kervella et al. 2019 Catalogue...
+-->Querying Kervella et al. 2022 Catalogue...
 -->Query complete!
 -->Querying Cruzalebes et al. 2019 Catalogue (MDFC)...
 -->Query complete!
-Found 33 viable calibrators in 1.37 seconds!
+Found 31 viable calibrators in 27.45 seconds!
 ```
 
 ### Known Issues
