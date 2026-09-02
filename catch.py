@@ -16,6 +16,7 @@ from astropy.utils.metadata import MergeConflictWarning
 import requests
 from argparse import ArgumentParser
 import sys
+from time import sleep
 from catch_mircx_mystic import *
 from catch_silmaril import *
 from catch_spica import *
@@ -153,6 +154,8 @@ def interactive_questions(instrument: str):
                         s_cal_checker(target_star_name)
                     elif instrument == "R":
                         r_cal_checker(target_star_name)
+
+                sleep(0.5)
 
     else:
         exit(
@@ -306,6 +309,8 @@ def cli_questions():
                         s_cal_checker(target_star_name)
                     elif args.instrument == "R":
                         r_cal_checker(target_star_name)
+
+                sleep(0.5)
 
 
 
