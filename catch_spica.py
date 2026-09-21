@@ -248,11 +248,11 @@ def r_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
     jmmc_result = vizier.query_region(f"{calibrator_name}", radius="15d")
 
     if len(jmmc_result) != 0:
-        jmmc_result = jmmc_result[0]
+        jmmc_result = jmmc_result[0][0:1]
         print(f"-->{GREEN}Query complete!{RESET}")
-        print(f"---->Query results: V mag = {jmmc_result['Vmag'][0]:.2f}, H mag = {jmmc_result['Hmag'][0]:.2f}, "
-              f"UDDH = {jmmc_result['UDDH'][0]:.3f}")
-        if (jmmc_result['Vmag'] <= 5) |  (jmmc_result['Hmag'] <= 6.4) | (jmmc_result['Rmag'] <= 5.4) | (jmmc_result['UDDH'] > 0.25):
+        print(f"---->Query results: V mag = {jmmc_result[0]['Vmag']:.2f}, H mag = {jmmc_result[0]['Hmag']:.2f}, "
+              f"UDDH = {jmmc_result[0]['UDDH']:.3f}")
+        if (jmmc_result['Vmag'] <= 5) or  (jmmc_result['Hmag'] <= 6.4) or (jmmc_result['Rmag'] <= 5.4) or (jmmc_result['UDDH'] > 0.25):
             print(f"-->{RED}{calibrator_name} fails JMMC Stellar Diameters Catalogue (JSDC) checks!{RESET}")
             check_pass_count -= 1
             if jmmc_result['Vmag'] > 5:
