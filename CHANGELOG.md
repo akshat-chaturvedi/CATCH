@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+- Support for PAVO
+
 ## [2.1] - 2026-08-27
 
 ### Added
