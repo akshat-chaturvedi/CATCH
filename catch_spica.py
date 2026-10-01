@@ -10,6 +10,7 @@ from astropy.coordinates import SkyCoord
 import astropy.units as u
 import time
 import collections
+import logging
 import numpy as np
 import warnings
 from astroquery.exceptions import NoResultsWarning
@@ -68,10 +69,10 @@ def r_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
     # default constraints are described in the README file, but can be edited by changing the column_filters parameter
     # in the query below. Guidance on syntax can be found at https://vizier.cds.unistra.fr/vizier/vizHelp/cst.htx
     jmmc_result = vizier.query_region(f"{star_name}", radius="20d", column_filters={"Rmag":"<5.4",
-                                                                           "UDDH": "<1", "_DEJ2000": ">-25"})
+                                                                           "UDDH": "<0.6", "_DEJ2000": ">-25"})
     print(f"-->{GREEN}Query complete!{RESET}")
     if len(jmmc_result) > 0:
-        jmmc_result = jmmc_result[0]
+        jmmc_result = jmmc_result[0][0:]
     else:
         exit("ERROR: No calibrators found within 20 degrees of your target in JSDC. Consider modifying your "
              "constraints!")
@@ -262,7 +263,7 @@ def r_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
             if jmmc_result['Rmag'] > 5:
                 print(f"---->{RED}Calibrator Rmag > 5! May be too faint for reliable AO acquisition!{RESET}")
             if jmmc_result['UDDH'] > 0.25:
-                print(f"---->{RED}Calibrator UDDH > 0.5!{RESET}")
+                print(f"---->{RED}Calibrator UDDH > 0.6!{RESET}")
         else:
             print(f"-->{GREEN}{calibrator_name} passes JMMC Stellar Diameters Catalogue (JSDC) checks!{RESET}")
             pass

@@ -10,6 +10,7 @@ from astropy.coordinates import SkyCoord
 import astropy.units as u
 import time
 import collections
+import logging
 import numpy as np
 import warnings
 from astroquery.exceptions import NoResultsWarning
@@ -70,7 +71,7 @@ def s_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
                                                                            "UDDH": "<0.4", "_DEJ2000": ">-25"})
     print(f"-->{GREEN}Query complete!{RESET}")
     if len(jmmc_result) > 0:
-        jmmc_result = jmmc_result[0]
+        jmmc_result = jmmc_result[0][0:]
     else:
         exit("WARNING: No calibrators found within 10 degrees of your target in JSDC. Consider modifying your "
              "constraints!")

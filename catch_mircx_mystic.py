@@ -10,6 +10,7 @@ from astropy.coordinates import SkyCoord
 import astropy.units as u
 import time
 import collections
+import logging
 import numpy as np
 import warnings
 from astroquery.exceptions import NoResultsWarning
@@ -195,8 +196,11 @@ def hk_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
     t2 = time.perf_counter()
     if len(fcct['Name']) > 0:
         print(f"Found {YELLOW}{len(fcct['Name'])}{RESET} viable calibrators in {round(t2 - t1, 2)} seconds!")
+        logging.info(f"MIRCX/MYSTIC Cal Finder: Found {len(fcct['Name'])} viable calibrators for "
+                     f"{star_name} in {round(t2 - t1, 2)} seconds!")
     else:
         print(f"{RED}Found no viable calibrators!{RESET}")
+        logging.info(f"MIRCX/MYSTIC Cal Finder: Found no viable calibrators for {star_name}!")
 
     return
 
@@ -426,11 +430,17 @@ def hk_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
     if check_pass_count / init_check_pass_count == 1:
         print(f"-->{YELLOW}{calibrator_name}{RESET} passed {GREEN}{check_pass_count}/{init_check_pass_count}{RESET} checks")
         print(f"Confirmed {YELLOW}{calibrator_name}{RESET} is likely an {GREEN}ideal{RESET} calibrator in {round(t2 - t1, 2)} seconds!")
+        logging.info(f"MIRCX/MYSTIC Cal Checker: Confirmed {calibrator_name} is likely an ideal calibrator in "
+                     f"{round(t2 - t1, 2)} seconds!")
     elif (check_pass_count / init_check_pass_count < 1) & (check_pass_count / init_check_pass_count >= 0.7):
         print(f"-->{YELLOW}{calibrator_name}{RESET} passed {ORANGE}{check_pass_count}/{init_check_pass_count}{RESET} checks")
         print(f"Confirmed {YELLOW}{calibrator_name}{RESET} is likely a {ORANGE}usable{RESET} calibrator in {round(t2 - t1, 2)} seconds!")
+        logging.info(f"MIRCX/MYSTIC Cal Checker: Confirmed {calibrator_name} is likely a usable calibrator in "
+                     f"{round(t2 - t1, 2)} seconds!")
     else:
         print(f"{YELLOW}{calibrator_name}{RESET} {RED}is unlikely to be a viable calibrator!{RESET}")
         print("We recommend submitting this star to the JMMC Bad Calibrators Database: https://www.jmmc.fr/badcal/\n")
+        logging.info(f"MIRCX/MYSTIC Cal Checker: Confirmed {calibrator_name} is unlikely to be an viable calibrator in "
+                     f"{round(t2 - t1, 2)} seconds!")
 
     return

@@ -6,7 +6,7 @@ observations with the CHARA Array"""
 __author__ = "Akshat S. Chaturvedi and Mahir M. Patel"
 __credits__ = ["Akshat S. Chaturvedi", "Mahir M. Patel", "Colin Kane", "Becky Flores", "Jeremy Jones"]
 __license__ = "MIT"
-__version__ = "2.1 | 2026/08/27" # Updated CLI, added constants.py to make output file changes easier
+__version__ = "2.1.1 | 2026/10/01" # Added logging for referencing
 __maintainer__ = "Akshat S. Chaturvedi"
 __email__ = "achaturvedi3@gsu.edu"
 __status__ = "Production"
@@ -17,6 +17,7 @@ import requests
 from argparse import ArgumentParser
 import sys
 from time import sleep
+import logging
 from catch_mircx_mystic import *
 from catch_silmaril import *
 from catch_spica import *
@@ -30,6 +31,16 @@ warnings.simplefilter("ignore", MergeConflictWarning)
 # __version__ = '1.2 | 2025/10/31' # Added e_LDD to print output, vizier server error messages
 # __version__ = '1.3 | 2026/02/11' #  Added server switch capability if normal Vizier server is down, updated README
 # __version__ = '2.0 | 2026/08/12' # Added Instruments for MRIC-X, MYSTIC, SILMARIL
+# __version__ = "2.1 | 2026/08/27" # Updated CLI, added constants.py to make output file changes easier
+
+# Logging configuration
+logging.basicConfig(
+        filename='CATCH.log',
+        encoding='utf-8',
+        format='%(levelname)s (%(asctime)s): %(message)s (Line: %(lineno)d [%(filename)s])',
+        datefmt='%d/%m/%Y %I:%M:%S %p',
+        level=logging.INFO
+    )
 
 def interactive_questions(instrument: str):
     main_question = input(
