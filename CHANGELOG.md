@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file. The format 
 
 - Support for PAVO
 
+
+## [2.1.1] - 2026-10-01
+
+### Added
+- Logging
+
+### Fixed
+- Bug in catch_spica module when no cals are found for a given science target
+
 ## [2.1] - 2026-08-27
 
 ### Added
