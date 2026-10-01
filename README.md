@@ -1,6 +1,5 @@
 ![banner](Banner/CATCH_Banner_New.png)
 
-[![Version](https://img.shields.io/badge/V-2.0-blue)]()
 [![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff)](https://www.python.org)
 [![numpy](https://img.shields.io/badge/NumPy-4DABCF?logo=numpy&logoColor=fff)](http://www.numpy.org/)
 [![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/)
@@ -222,9 +221,17 @@ The latest version of `CATCH` has been developed for:
 - astroquery>=0.4.7
 - numpy>=1.24.4
 
+## Citation
+If you used `CATCH` to help with your observations, please cite it through the following:
+
+[![DOI](https://zenodo.org/badge/1044635134.svg)](https://doi.org/10.5281/zenodo.23090185)
+
+and including the following acknowledgement in your publications:
+- "This work made use of CATCH: CHARA Array's Thrifty Calibrator Hunter, available at https://github.com/akshat-chaturvedi/CATCH"
+
+
+
 ## Acknowledgments
-- If you used `CATCH` to help with your observations, please consider starring the GitHub repository and including the following acknowledgement in your publications: 
-  - _This work made use of CATCH, CHARA Array's Thrifty Calibrator Hunter, available at https://github.com/akshat-chaturvedi/CATCH_
 - We would like to thank Becky Flores, Dr. Gail Schaefer, and Dr. Cyprien Lanthermann at the CHARA Array for their guidance in defining the necessary criteria for good calibrators for MIRC-X/MYSTIC and Silmaril
 - We would like to thank Dr. Denis Mourard at Observatoire de la Côte d’Azur for his guidance in defining the necessary criteria for good calibrators for SPICA
 - Banner background image: [The exotic stellar population of Westerlund 1 (ESA/Webb, NASA & CSA, M. Zamani (ESA/Webb), M. G. Guarcello (INAF-OAPA) and the EWOCS team)](https://esawebb.org/images/potm2409a/)
