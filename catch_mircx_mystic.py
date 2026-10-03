@@ -3,22 +3,20 @@
 """catch_mircx_mystic.py: A program to cross-match across multiple Vizier databases to return suitable calibrator stars for
 observations with the CHARA Array using the MIRC-X/MYSTIC beam combiners"""
 
-from astroquery.vizier import Vizier
-from astroquery.simbad import Simbad
-from astropy.table import Table, hstack
-from astropy.coordinates import SkyCoord
-import astropy.units as u
-import time
 import collections
 import logging
+import time
+
+import astropy.units as u
 import numpy as np
-import warnings
-from astroquery.exceptions import NoResultsWarning
-from constants import BLUE, RED, YELLOW, GREEN, ORANGE, RESET, outfile_format, outfile_delimiter
+from astropy.coordinates import SkyCoord
+from astropy.table import Table, hstack
+from astroquery.simbad import Simbad
+from astroquery.vizier import Vizier
+
+from constants import BLUE, GREEN, ORANGE, RED, RESET, YELLOW, outfile_delimiter, outfile_format
 
 # Vizier.clear_cache()
-
-warnings.simplefilter("ignore", NoResultsWarning)
 
 def hk_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> None:
     """
@@ -181,7 +179,7 @@ def hk_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
     fcct['_DEJ2000'] = coords.dec.to_string(unit=u.deg, sep=' ', alwayssign=True, pad=True, precision=2)
 
     # Add one or more comment lines
-    if type(star_v_mag) == np.ma.core.MaskedConstant:
+    if type(star_v_mag) is np.ma.core.MaskedConstant:
         star_v_mag = "--"
         fcct.meta['comments'] = [f'Calibrators for {star_name} (RA: {star_ra}, DEC: {star_dec}, '
                                  f'V Mag: {star_v_mag}) using MIRC-X/MYSTIC']
@@ -324,7 +322,7 @@ def hk_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
             print(f"-->{RED}Warning: Potential calibrator has Gaia DR3 companions within 10\"{RESET}")
             if gaia_comp_check:
                 check_pass_count -= 1
-                print(f"---->Companions shown below. _r corresponds to distance from calibrator in arcseconds")
+                print("---->Companions shown below. _r corresponds to distance from calibrator in arcseconds")
                 print("-"*30+"START GAIA COMPANIONS"+"-"*30)
                 print(gaia_result[1:])
                 print("-"*31+"END GAIA COMPANIONS"+"-"*31)

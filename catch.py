@@ -11,17 +11,21 @@ __maintainer__ = "Akshat S. Chaturvedi"
 __email__ = "achaturvedi3@gsu.edu"
 __status__ = "Production"
 
-from astroquery.vizier import  conf
-from astropy.utils.metadata import MergeConflictWarning
-import requests
-from argparse import ArgumentParser
-import sys
-from time import sleep
 import logging
-from catch_mircx_mystic import *
-from catch_silmaril import *
-from catch_spica import *
-from constants import BLUE, RED, YELLOW, MAGENTA, GREEN, RESET
+import sys
+import warnings
+from argparse import ArgumentParser
+from time import sleep
+
+import requests
+from astropy.utils.metadata import MergeConflictWarning
+from astroquery.exceptions import NoResultsWarning
+from astroquery.vizier import Vizier, conf
+
+from catch_mircx_mystic import hk_cal_checker, hk_cal_finder
+from catch_silmaril import s_cal_checker, s_cal_finder
+from catch_spica import r_cal_checker, r_cal_finder
+from constants import BLUE, GREEN, MAGENTA, RED, RESET, YELLOW
 
 warnings.simplefilter("ignore", NoResultsWarning)
 warnings.simplefilter("ignore", MergeConflictWarning)
