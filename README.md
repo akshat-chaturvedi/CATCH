@@ -190,23 +190,40 @@ Beginning calibration search for target: HD89484
 Found 31 viable calibrators in 27.45 seconds!
 ```
 
+### Flag Descriptions
+
+#### *Gaia* flags
+The two parameters that `CATCH` checks for in the *Gaia* DR3 database is the **Renormalised Unit Weight Error (RUWE)** 
+and the **Image Parameter Determination fraction of multiple peaks (IPDfmp)**. **RUWE** is a measure of the goodness of fit
+of a single star astrometric model to each *Gaia* source. While **RUWE** is a very good indicator of the possible multiplicity 
+of a source, it usually peaks at separations between about 0.04 to 1 arcsecond, so anything closer or wider won't be 
+picked up by it.
+**IPDfmp** measures the fraction of *Gaia* images that have more than one peak in the PSF. This parameter is pretty 
+reliable, and usually IPDfmp > 2 is indicative of a companion. It is however less useful for very close companions though,
+as it peaks between ~ 0.1 to 1 arcsecond separations. As such, a possible calibrator that passes the *Gaia* checks may still
+be a very close separation binary star.
+
+#### Kervella et al. (2022) Flags
+
+`CATCH` checks for eight separate parameters in the Kervella et al. (2022) Catalogue to identify potential binary or multiple star systems. These parameters are:
+
+- `DMS = 0` This flags checks for double or multiple stars according to the *Hipparcos* and *Tycho* Double and Multiples Catalogue. A value set to 1 is indicative of a double or multiple star system.
+- `W = 0` This flag checks for double or multiple stars according to the Washington Visual Double Star Catalogue. A value set to 1 is indicative of a double or multiple star system. 
+- `BinHG1 = 0` This is a binary-star flag based on the proper motion anomaly (PMa) measured by comparing *Hipparcos* and *Gaia* DR1 astrometry. A value set to 1 implies a significant proper motion anomaly was detected, suggesting a possible companion.
+- `BinH2G2 = 0` This is a binary-star flag based on the proper motion anomaly (PMa) measured by comparing *Hipparcos* 2 and *Gaia* DR2 astrometry. A value set to 1 implies a significant proper motion anomaly was detected, suggesting a possible companion.
+- `BinH2EG3b = 0` This is a binary-star flag based on the proper motion anomaly (PMa) measured by comparing *Hipparcos* 2 and *Gaia* EDR3 astrometry. A value set to 1 implies a significant proper motion anomaly was detected, suggesting a possible companion.
+- `snrPMaHG1 < 3.0` This flag is the signal-to-noise ratio of the Proper Motion anomaly between *Hipparcos* and *Gaia* DR1. An `snrPMaHG1 ≥ 3.0` suggests there is a significant anomaly, indicative of a companion.
+- `snrPMaH2G2 < 3.0` This flag is the signal-to-noise ratio of the Proper Motion anomaly between *Hipparcos 2* and *Gaia* DR2. An `snrPMaH2G2 ≥ 3.0` suggests there is a significant anomaly, indicative of a companion.
+- `snrPMaH2EG3b < 3.0` This flag is the signal-to-noise ratio of the Proper Motion anomaly between *Hipparcos* 2 and *Gaia* EDR3. An `snrPMaH2EG3b ≥ 3.0` suggests there is a significant anomaly, indicative of a companion.
+
+A calibrator star that passes all eight checks has no identified evidence of multiplicity from these catalog indicators, reducing the likelihood of selecting a binary or multiple star system. However, passing these checks does not guarantee that the star is single, as some companions may remain undetected by the available astrometric measurements.
+
 ### Known Issues
 #### Vizier server timeouts
 Sometimes (more so recently) the default Vizier site (https://vizier.cds.unistra.fr/) is down. In such a case, the Vizier 
 query will either time out or simply not go through. At present, there doesn't seem to be a way to resolve this, so we 
 recommend finding calibrators well in advance of observing, and not relying on `CATCH` for "on-the-fly" calibrator 
 searches during observing runs.
-
-#### Reliability of Gaia flags
-The two parameters that `CATCH` checks for in the Gaia DR3 database is the **Renormalised Unit Weight Error (RUWE)** 
-and the **Image Parameter Determination fraction of multiple peaks (IPDfmp)**. **RUWE** is a measure of the goodness of fit
-of a single star astrometric model to each Gaia source. While **RUWE** is a very good indicator of the possible multiplicity 
-of a source, it usually peaks at separations between about 0.04 to 1 arcsecond, so anything closer or wider won't be 
-picked up by it.
-**IPDfmp** measures the fraction of Gaia images that have more than one peak in the PSF. This parameter is pretty 
-reliable, and usually IPDfmp > 2 is indicative of a companion. It is however less useful for very close companions though,
-as it peaks between ~ 0.1 to 1 arcsecond separations. As such, a possible calibrator that passes the Gaia checks may still
-be a very close separation binary star.
 
 #### Silmaril Calibrators
 The calibrator constraints on Silmaril can make it difficult to find a large sample of calibrators. If this issue arises for 
