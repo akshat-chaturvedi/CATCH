@@ -39,14 +39,16 @@ def hk_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
 
     star_details_table = Simbad.query_object(f"{star_name}")
     if len(star_details_table) == 0:
-        exit(f"Error: {YELLOW}{star_name}{RESET} not found in SIMBAD. Please check that you typed it in correctly!")
+        print(f"{RED}Error: {YELLOW}{star_name}{RESET} {RED}not found in SIMBAD. Please check that you typed it in correctly! Exiting...{RESET}")
+        return
     else:
         star_ra = star_details_table['ra'].value[0]
         star_dec = star_details_table['dec'].value[0]
         star_v_mag = star_details_table['V'].value[0]
 
         if star_dec <= -25:
-            exit("This star is outside the declination limits (DEC > -25) for the CHARA Array!")
+            print(f"{RED}This star is outside the declination limits (DEC > -25) for the CHARA Array! Exiting...{RESET}")
+            return
 
         star_coords = SkyCoord(ra=star_ra * u.deg, dec=star_dec * u.deg, frame='icrs')
         star_ra = star_coords.ra.to_string(unit=u.hour, sep=' ', pad=True, precision=2)
@@ -54,7 +56,7 @@ def hk_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
 
     print(f"Beginning calibration search for target: {YELLOW}{star_name}{RESET}")
     # Check with JMMC Stellar Diameters Catalogue (Vmag < 9.0, Hmag < 6.4, UDDH < 0.4)
-    vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "SpType", "Vmag", "Rmag","Hmag", "Kmag", "UDDH", "UDDK",
+    vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "SpType", "Vmag", "Hmag", "Kmag", "UDDH", "UDDK",
                              "e_LDD", "+_r"], catalog="II/346/jsdc_v2")
 
     # The default vizier query row limit is set here to 100. If you would like to search for more, increase this number
@@ -71,8 +73,9 @@ def hk_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
     if len(jmmc_result) > 0:
         jmmc_result = jmmc_result[0]
     else:
-        exit("ERROR: No calibrators found within 10 degrees of your target in JSDC. Consider modifying your "
-             "constraints!")
+        print("ERROR: No calibrators found within 10 degrees of your target in JSDC. Consider modifying your "
+             "constraints! Exiting...")
+        return
     # Cross-check with Gaia DR3 catalogue for IPDfmp (<2), RUWE (<1.4), RVamp, and Vbroad<100 binarity and rapid
     # rotation checks
     vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "IPDfmp", "RUWE", "RVamp", "Vbroad", "+_r"],
@@ -88,8 +91,9 @@ def hk_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
     if len(gaia_result) > 0:
         gaia_result = gaia_result[0]
     else:
-        exit("ERROR: No calibrators found within 10 degrees of your target in Gaia DR3. Consider modifying your "
-             "constraints!")
+        print(f"{RED}ERROR: No calibrators found within 10 degrees of your target in Gaia DR3. Consider modifying your "
+             "constraints! Exiting...")
+        return
     if gaia_comp_check:
         vizier_neighbors = Vizier(columns=["_RAJ2000", "_DEJ2000", "IPDfmp", "RUWE", "RVamp", "Vbroad", "+_r"],
                                   catalog="I/355/gaiadr3")
@@ -97,7 +101,7 @@ def hk_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
         # Now can print out each entry and catch Gaia DR3 companions
         vizier_neighbors.ROW_LIMIT = 100
 
-        print(f"-->Checking for close Gaia companions within {gaia_comp_check}\"")
+        print(f"-->Checking for nearby Gaia sources within {gaia_comp_check}\"")
         neighbors = vizier_neighbors.query_region(gaia_result, radius=f"{gaia_comp_check}s")[0]
 
         removal_list = ([item for item, count in collections.Counter(neighbors['_q']).items() if count > 1])
@@ -127,8 +131,9 @@ def hk_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
     if len(kervella_result) > 0:
         kervella_result = kervella_result[0]
     else:
-        exit("ERROR: No calibrators found within 10 degrees of your target in the Kervella et al. 2022 Catalogue. "
-             "Consider modifying your constraints!")
+        print(f"{RED}ERROR: No calibrators found within 10 degrees of your target in the Kervella et al. 2022 Catalogue. "
+             f"Consider modifying your constraints! Exiting...{RESET}")
+        return
 
     mask = ((kervella_result["DMS"] == 0) &
             (kervella_result["W"] == 0) &
@@ -160,8 +165,9 @@ def hk_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
     if len(cruzalebes_result) > 0:
         cruzalebes_result = cruzalebes_result[0]
     else:
-        exit("ERROR: No calibrators found within 10 degrees of your target in MDFC. Consider modifying your "
-             "constraints!")
+        print(f"{RED}ERROR: No calibrators found within 10 degrees of your target in MDFC. Consider modifying your "
+             f"constraints! Exiting...{RESET}")
+        return
     cruzalebes_cols = Table([cruzalebes_result['Diam-GAIA'], cruzalebes_result['CalFlag'], cruzalebes_result['IRflag']])
 
     ind = cruzalebes_result['_q'] - 1
@@ -193,7 +199,7 @@ def hk_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
 
     t2 = time.perf_counter()
     if len(fcct['Name']) > 0:
-        print(f"Found {YELLOW}{len(fcct['Name'])}{RESET} viable calibrators in {round(t2 - t1, 2)} seconds!")
+        print(f"Found {ORANGE}{len(fcct['Name'])}{RESET} viable calibrators in {round(t2 - t1, 2)} seconds!")
         logging.info(f"MIRCX/MYSTIC Cal Finder: Found {len(fcct['Name'])} viable calibrators for "
                      f"{star_name} in {round(t2 - t1, 2)} seconds!")
     else:
@@ -222,12 +228,14 @@ def hk_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
     star_details_table = Simbad.query_object(f"{calibrator_name}")
 
     if len(star_details_table) == 0:
-        exit(f"Error: {YELLOW}{calibrator_name}{RESET} not found in SIMBAD. Please check that you typed it in correctly!")
+        print(f"{RED}Error: {YELLOW}{calibrator_name}{RESET} {RED}not found in SIMBAD. Please check that you typed it in correctly! Exiting...{RESET}")
+        return
     else:
         star_dec = star_details_table['dec'].value[0]
 
         if star_dec <= -25:
-            exit("This star is outside the declination limits (DEC > -25) for the CHARA Array!")
+            print(f"{RED}This star is outside the declination limits (DEC > -25) for the CHARA Array!{RESET}")
+            return
         else:
             pass
 
@@ -240,7 +248,7 @@ def hk_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
 
     print(f"Checking calibrator viability of: {YELLOW}{calibrator_name}{RESET}")
     # Check with JMMC Stellar Diameters Catalogue (Vmag < 9.0, Hmag < 6.4, UDDH < 0.4, SpType = GKM)
-    vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "SpType", "Vmag", "Rmag", "Hmag", "Kmag", "UDDH", "UDDK",
+    vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "SpType", "Vmag", "Hmag", "Kmag", "UDDH", "UDDK",
                              "e_LDD", "+_r"], catalog="II/346/jsdc_v2")
 
     vizier.ROW_LIMIT = 2000
@@ -270,7 +278,7 @@ def hk_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
                        jmmc_result['UDDH']])
 
     else:
-        print(f"-->{ORANGE}{calibrator_name} not found in JMMC Stellar Diameters Catalogue (JSDC){RESET} — "
+        print(f"-->{YELLOW}{calibrator_name} not found in JMMC Stellar Diameters Catalogue (JSDC){RESET} — "
               f"Check against other catalogues!")
         check_pass_count -= 1
         jmmc_table = Table([])
@@ -284,7 +292,8 @@ def hk_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
 
     if len(gaia_result) == 0:
         gaia_table = Table([])
-        exit(f"ERROR: {calibrator_name} not found in Gaia DR3!")
+        print(f"{RED}ERROR: {calibrator_name} not found in Gaia DR3!{RESET}")
+        return
     else:
         gaia_result = gaia_result[0]
         print(f"-->{GREEN}Query complete!{RESET}")
@@ -319,10 +328,10 @@ def hk_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
                 pass
 
         if len(gaia_result) > 1:
-            print(f"-->{RED}Warning: Potential calibrator has Gaia DR3 companions within 10\"{RESET}")
+            print(f"-->{RED}Warning: Potential calibrator has nearby Gaia DR3 sources within 10\"{RESET}")
             if gaia_comp_check:
                 check_pass_count -= 1
-                print("---->Companions shown below. _r corresponds to distance from calibrator in arcseconds")
+                print("---->Nearby sources shown below. _r corresponds to distance from calibrator in arcseconds")
                 print("-"*30+"START GAIA COMPANIONS"+"-"*30)
                 print(gaia_result[1:])
                 print("-"*31+"END GAIA COMPANIONS"+"-"*31)
@@ -379,7 +388,7 @@ def hk_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
                                 kervella_result[0]['snrPMaH2EG3b']])
 
     else:
-        print(f"-->{ORANGE}Warning: {calibrator_name} not found in Kervella et al. 2022 Catalogue "
+        print(f"-->{RED}Warning: {calibrator_name} not found in Kervella et al. 2022 Catalogue "
               f"— check against other catalogues!{RESET}")
         check_pass_count -= 1
         kervella_table = Table([])
@@ -427,12 +436,12 @@ def hk_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
     t2 = time.perf_counter()
     if check_pass_count / init_check_pass_count == 1:
         print(f"-->{YELLOW}{calibrator_name}{RESET} passed {GREEN}{check_pass_count}/{init_check_pass_count}{RESET} checks")
-        print(f"Confirmed {YELLOW}{calibrator_name}{RESET} is likely an {GREEN}ideal{RESET} calibrator in {round(t2 - t1, 2)} seconds!")
+        print(f"Confirmed {ORANGE}{calibrator_name}{RESET} is likely an {GREEN}ideal{RESET} calibrator in {round(t2 - t1, 2)} seconds!")
         logging.info(f"MIRCX/MYSTIC Cal Checker: Confirmed {calibrator_name} is likely an ideal calibrator in "
                      f"{round(t2 - t1, 2)} seconds!")
     elif (check_pass_count / init_check_pass_count < 1) & (check_pass_count / init_check_pass_count >= 0.7):
         print(f"-->{YELLOW}{calibrator_name}{RESET} passed {ORANGE}{check_pass_count}/{init_check_pass_count}{RESET} checks")
-        print(f"Confirmed {YELLOW}{calibrator_name}{RESET} is likely a {ORANGE}usable{RESET} calibrator in {round(t2 - t1, 2)} seconds!")
+        print(f"Confirmed {ORANGE}{calibrator_name}{RESET} is likely a {ORANGE}usable{RESET} calibrator in {round(t2 - t1, 2)} seconds!")
         logging.info(f"MIRCX/MYSTIC Cal Checker: Confirmed {calibrator_name} is likely a usable calibrator in "
                      f"{round(t2 - t1, 2)} seconds!")
     else:

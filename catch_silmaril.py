@@ -23,7 +23,7 @@ def s_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
     Finds viable calibrator stars within 10 degrees for CHARA Array interferometric targets using Silmaril. Successful
     calibrators pass magnitude and diameter checks from the JMMC Stellar Diameters Catalogue
     (https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=II/346/jsdc_v2) and binarity checks from the Gaia DR3
-    (https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=I/355/gaiadr3), Kervella et al. 2019
+    (https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=I/355/gaiadr3), Kervella et al. 2022
     (https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/623/A72), and Cruzalebes et al. 2019
     (https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=II/361) catalogues.
 
@@ -97,7 +97,7 @@ def s_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
         # Now can print out each entry and catch Gaia DR3 companions
         vizier_neighbors.ROW_LIMIT = -1
 
-        print(f"-->Checking for close Gaia companions within {gaia_comp_check}\"")
+        print(f"-->Checking for nearby Gaia sources within {gaia_comp_check}\"")
         neighbors = vizier_neighbors.query_region(gaia_result, radius=f"{gaia_comp_check}s")[0]
 
         removal_list = ([item for item, count in collections.Counter(neighbors['_q']).items() if count > 1])
@@ -219,7 +219,7 @@ def s_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
     """
     Checks chosen calibrator stars using magnitude and diameter checks from the JMMC Stellar Diameters Catalogue for Silmaril
     (https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=II/346/jsdc_v2) and binarity checks from the Gaia DR3
-    (https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=I/355/gaiadr3), Kervella et al. 2019
+    (https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=I/355/gaiadr3), Kervella et al. 2022
     (https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/623/A72), and Cruzalebes et al. 2019
     (https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=II/361) catalogues.
 
@@ -333,10 +333,10 @@ def s_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
                 pass
 
         if len(gaia_result) > 1:
-            print(f"-->{RED}Warning: Potential calibrator has Gaia DR3 companions within 10{RESET}")
+            print(f"-->{RED}Warning: Potential calibrator has nearby Gaia DR3 sources within 10{RESET}")
             if gaia_comp_check:
                 check_pass_count -= 1
-                print("---->Companions shown below. _r corresponds to distance from calibrator in arcseconds")
+                print("---->Nearby sources shown below. _r corresponds to distance from calibrator in arcseconds")
                 print("-" * 30 + "START GAIA COMPANIONS" + "-" * 30)
                 print(gaia_result[1:])
                 print("-" * 31 + "END GAIA COMPANIONS" + "-" * 31)
