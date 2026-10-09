@@ -112,8 +112,8 @@ def hk_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) ->
     ind = gaia_result['_q'] - 1
     jmmc_cols = Table([jmmc_result['Name'][ind], jmmc_result['_r'][ind], jmmc_result['_RAJ2000'][ind],
                        jmmc_result['_DEJ2000'][ind], jmmc_result['SpType'][ind], jmmc_result['Vmag'][ind],
-                       jmmc_result['Rmag'][ind], jmmc_result['Hmag'][ind], jmmc_result['Kmag'][ind],
-                       jmmc_result['UDDH'][ind], jmmc_result['UDDK'][ind], jmmc_result['e_LDD'][ind]])
+                       jmmc_result['Hmag'][ind], jmmc_result['Kmag'][ind], jmmc_result['UDDH'][ind],
+                       jmmc_result['UDDK'][ind], jmmc_result['e_LDD'][ind]])
 
     gaia_cols = Table([gaia_result['IPDfmp'], gaia_result['RUWE'], gaia_result['RVamp'], gaia_result['Vbroad']])
 
