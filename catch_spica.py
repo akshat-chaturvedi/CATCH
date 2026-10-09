@@ -18,6 +18,16 @@ from constants import BLUE, GREEN, ORANGE, RED, RESET, YELLOW, outfile_delimiter
 
 # Vizier.clear_cache()
 
+
+def _passes_or_missing(column, condition):
+    """
+    Builds a boolean mask that is True wherever `column` is masked/missing (so rows with no
+    reported value for that quantity are kept rather than silently dropped), OR wherever
+    `condition` evaluates True.
+    """
+    return np.ma.getmaskarray(column) | np.ma.filled(condition, False)
+
+
 def r_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> None:
     """
     Finds viable calibrator stars within 10 degrees for CHARA Array interferometric targets using SPICA. Successful
@@ -66,11 +76,23 @@ def r_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
     # By default, CATCH queries the JMMC catalog for stars within 10 degrees, but it can be increased as required. The
     # default constraints are described in the README file, but can be edited by changing the column_filters parameter
     # in the query below. Guidance on syntax can be found at https://vizier.cds.unistra.fr/vizier/vizHelp/cst.htx
-    jmmc_result = vizier.query_region(f"{star_name}", radius="20d", column_filters={"Rmag":"<5.4",
-                                                                           "UDDH": "<0.6", "_DEJ2000": ">-25"})
+    jmmc_result = vizier.query_region(f"{star_name}", radius="20d", column_filters={"_DEJ2000": ">-25"})
     print(f"-->{GREEN}Query complete!{RESET}")
     if len(jmmc_result) > 0:
         jmmc_result = jmmc_result[0][0:]
+        # Rmag/UDDH are checked here (instead of via column_filters) so that rows with no
+        # reported value for one of these columns aren't silently excluded from the results.
+        # Calibrator UDDH must be < 0.5 mas, and if the target itself is smaller than 0.5 mas (per JSDC), the
+        # calibrator must also be smaller than the target. If the target isn't in JSDC or has no UDDH, only the
+        # 0.5 mas limit is applied.
+        uddh_limit = 0.5
+        target_jsdc = vizier.query_region(f"{star_name}", radius="5s")
+        if len(target_jsdc) > 0 and not np.ma.is_masked(target_jsdc[0]["UDDH"][0]):
+            uddh_limit = min(uddh_limit, float(target_jsdc[0]["UDDH"][0]))
+        print(f"-->Requiring calibrator UDDH < {uddh_limit:.3f} mas")
+
+        jmmc_result = jmmc_result[_passes_or_missing(jmmc_result["Rmag"], jmmc_result["Rmag"] <= 5.4) &
+                                   _passes_or_missing(jmmc_result["UDDH"], jmmc_result["UDDH"] < uddh_limit)]
     else:
         exit("ERROR: No calibrators found within 20 degrees of your target in JSDC. Consider modifying your "
              "constraints!")
@@ -83,11 +105,17 @@ def r_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
     # if you increased the row limit above, uncomment the following line and increase the timeout to a larger number.
     # WARNING: Doing this, depending on how much you increased the row limit by, can crash the program!!
     # vizier.TIMEOUT = 120
-    gaia_result = vizier.query_region(jmmc_result, radius="10s", column_filters={"IPDfmp": "<2", "RUWE": "<1.4",
-                                                                           "Vbroad": "<100", "RPmag": "<5.4"})
+    gaia_result = vizier.query_region(jmmc_result, radius="10s")
     print(f"-->{GREEN}Query complete!{RESET}")
     if len(gaia_result) > 0:
         gaia_result = gaia_result[0]
+        # IPDfmp/RUWE/Vbroad/RPmag are checked here (instead of via column_filters) so that rows
+        # with no reported value for one of these columns (e.g. missing Vbroad) aren't silently
+        # excluded from the results.
+        gaia_result = gaia_result[_passes_or_missing(gaia_result["IPDfmp"], gaia_result["IPDfmp"] <= 2) &
+                                   _passes_or_missing(gaia_result["RUWE"], gaia_result["RUWE"] <= 1.4) &
+                                   _passes_or_missing(gaia_result["Vbroad"], gaia_result["Vbroad"] < 100) &
+                                   _passes_or_missing(gaia_result["RPmag"], gaia_result["RPmag"] <= 5.7)]
     else:
         exit("ERROR: No calibrators found within 20 degrees of your target in Gaia DR3. Consider modifying your "
              "constraints!")
@@ -131,14 +159,16 @@ def r_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
         exit("ERROR: No calibrators found within 10 degrees of your target in the Kervella et al. 2022 Catalogue. "
              "Consider modifying your constraints!")
 
-    mask = ((kervella_result["DMS"] == 0) &
-            (kervella_result["W"] == 0) &
-            (kervella_result["BinHG1"] == 0) &
-            (kervella_result["BinH2G2"] == 0) &
-            (kervella_result["BinH2EG3b"] == 0) &
-            (kervella_result["snrPMaHG1"] < 3.0) &
-            (kervella_result["snrPMaH2G2"] < 3.0) &
-            (kervella_result["snrPMaH2EG3b"] < 3.0)
+    # Rows where a given column is masked/missing pass that individual check rather than being
+    # excluded, since a masked comparison (e.g. masked == 0) would otherwise evaluate to False.
+    mask = (_passes_or_missing(kervella_result["DMS"], kervella_result["DMS"] == 0) &
+            _passes_or_missing(kervella_result["W"], kervella_result["W"] == 0) &
+            _passes_or_missing(kervella_result["BinHG1"], kervella_result["BinHG1"] == 0) &
+            _passes_or_missing(kervella_result["BinH2G2"], kervella_result["BinH2G2"] == 0) &
+            _passes_or_missing(kervella_result["BinH2EG3b"], kervella_result["BinH2EG3b"] == 0) &
+            _passes_or_missing(kervella_result["snrPMaHG1"], kervella_result["snrPMaHG1"] < 3.0) &
+            _passes_or_missing(kervella_result["snrPMaH2G2"], kervella_result["snrPMaH2G2"] < 3.0) &
+            _passes_or_missing(kervella_result["snrPMaH2EG3b"], kervella_result["snrPMaH2EG3b"] < 3.0)
     )
 
     kervella_filtered = kervella_result[mask]
@@ -155,11 +185,16 @@ def r_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
     # Cross-check with Cruzalebes catalogue for possible use as calibrators (CalFlag and IRflag should be 0)
     vizier = Vizier(columns=["Diam-GAIA", "CalFlag", "IRflag"], catalog="II/361/mdfc-v10")
     print(f"-->Querying {BLUE}Cruzalebes et al. 2019 Catalogue (MDFC){RESET}...")
-    cruzalebes_result = vizier.query_region(k_coords, radius="10s", column_filters={"CalFlag": "=0",
-                                                                                           "IRflag": "=0"})
+    cruzalebes_result = vizier.query_region(k_coords, radius="10s")
     print(f"-->{GREEN}Query complete!{RESET}")
     if len(cruzalebes_result) > 0:
         cruzalebes_result = cruzalebes_result[0]
+        # CalFlag/IRflag are checked here (instead of via column_filters) so that rows with no
+        # reported value aren't silently excluded from the results.
+        cruzalebes_result = cruzalebes_result[_passes_or_missing(cruzalebes_result["CalFlag"],
+                                                                   cruzalebes_result["CalFlag"] == 0) &
+                                               _passes_or_missing(cruzalebes_result["IRflag"],
+                                                                   cruzalebes_result["IRflag"] == 0)]
     else:
         exit("ERROR: No calibrators found within 10 degrees of your target in MDFC. Consider modifying your "
              "constraints!")
@@ -171,7 +206,7 @@ def r_cal_finder(star_name: str, gaia_comp_check: int | float | None = None) -> 
     fcct = hstack([second_cross_check_table[ind], cruzalebes_cols])
 
     # Check that Gaia estimated angular diameter is within 0.075 mas of JMMC's reported UDDH and UDDK
-    fcct = fcct[(abs(fcct['Diam-GAIA']-fcct['UDDH']) < 0.075) & (abs(fcct['Diam-GAIA']-fcct['UDDK']) < 0.075)]
+    fcct = fcct[(abs(fcct['Diam-GAIA']-fcct['UDDH']) < 0.5) & (abs(fcct['Diam-GAIA']-fcct['UDDK']) < 0.5)]
 
     # By default, CATCH will save the calibrator coordinates in sexagesimal. If you prefer them in degrees, comment out
     # the next 3 lines
@@ -245,7 +280,7 @@ def r_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
     vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "SpType", "Vmag", "Rmag", "Hmag", "Kmag", "UDDH", "UDDK",
                              "e_LDD", "+_r"], catalog="II/346/jsdc_v2")
 
-    vizier.ROW_LIMIT = 1500
+    vizier.ROW_LIMIT = -1
     print(f"-->Querying {BLUE}JMMC Stellar Diameters Catalogue (JSDC){RESET}...")
     jmmc_result = vizier.query_region(f"{calibrator_name}", radius="15d")
 
@@ -254,7 +289,7 @@ def r_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
         print(f"-->{GREEN}Query complete!{RESET}")
         print(f"---->Query results: V mag = {jmmc_result[0]['Vmag']:.2f}, H mag = {jmmc_result[0]['Hmag']:.2f}, "
               f"UDDH = {jmmc_result[0]['UDDH']:.3f}")
-        if (jmmc_result['Vmag'] <= 5) or  (jmmc_result['Hmag'] <= 6.4) or (jmmc_result['Rmag'] <= 5.4) or (jmmc_result['UDDH'] > 0.25):
+        if (jmmc_result['Vmag'] <= 5) or (jmmc_result['Rmag'] <= 5.4) or (jmmc_result['UDDH'] > 0.5):
             print(f"-->{RED}{calibrator_name} fails JMMC Stellar Diameters Catalogue (JSDC) checks!{RESET}")
             check_pass_count -= 1
             if jmmc_result['Vmag'] > 5:
@@ -263,8 +298,8 @@ def r_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
                 print(f"---->{RED}Calibrator Hmag > 6.4! May be too faint for reliable AO acquisition!{RESET}")
             if jmmc_result['Rmag'] > 5:
                 print(f"---->{RED}Calibrator Rmag > 5! May be too faint for reliable AO acquisition!{RESET}")
-            if jmmc_result['UDDH'] > 0.25:
-                print(f"---->{RED}Calibrator UDDH > 0.6!{RESET}")
+            if jmmc_result['UDDH'] > 0.5:
+                print(f"---->{RED}Calibrator UDDH > 0.5!{RESET}")
         else:
             print(f"-->{GREEN}{calibrator_name} passes JMMC Stellar Diameters Catalogue (JSDC) checks!{RESET}")
             pass
