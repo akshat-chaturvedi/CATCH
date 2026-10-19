@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+title: 'CATCH: CHARA Array''s Thrifty Calibrator Hunter'
+message: 'If you use this software, please cite it as below.'
+type: software
+authors:
+  - given-names: Akshat
+    name-particle: S
+    family-names: Chaturvedi
+    email: achaturvedi3@gsu.edu
+    affiliation: >-
+      Center for High Angular Resolution Astronomy and
+      Department of Physics and Astronomy, Georgia State
+      University
+    orcid: 'https://orcid.org/0009-0008-0451-4435'
+  - given-names: Mahir
+    name-particle: M
+    family-names: Patel
+    email: mpatel178@gsu.edu
+    affiliation: >-
+      Center for High Angular Resolution Astronomy and
+      Department of Physics and Astronomy, Georgia State
+      University
+    orcid: 'https://orcid.org/0009-0007-6284-0880'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23090185
+repository-code: 'https://github.com/akshat-chaturvedi/CATCH'
+abstract: >-
+  A tool to find and verify calibrator stars for optical and
+  near-infrared interferometry targets at the CHARA Array
+keywords:
+  - astronomy
+  - optical long-baseline interferometry
+license: MIT

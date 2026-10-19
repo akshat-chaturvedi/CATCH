@@ -251,7 +251,7 @@ def s_cal_checker(calibrator_name: str, gaia_comp_check: bool = False) -> None:
 
     check_pass_count = init_check_pass_count
 
-    print(f"Checking calibrator viability of: {YELLOW}{calibrator_name}{RESET}")
+    print(f"Checking Silmaril calibrator viability of: {YELLOW}{calibrator_name}{RESET}")
     # Check with JMMC Stellar Diameters Catalogue (Vmag < 9.0, Hmag < 6.4, UDDH < 0.4, SpType = GKM)
     vizier = Vizier(columns=["_RAJ2000", "_DEJ2000", "Name", "SpType", "Vmag", "Rmag", "Hmag", "Kmag", "UDDH", "UDDK",
                              "e_LDD", "+_r"], catalog="II/346/jsdc_v2")
