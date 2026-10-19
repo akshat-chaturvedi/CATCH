@@ -3,8 +3,7 @@ title: 'CATCH: CHARA Array''s Thrifty Calibrator Hunter'
 message: 'If you use this software, please cite it as below.'
 type: software
 authors:
-  - given-names: Akshat
-    name-particle: S
+  - given-names: Akshat S.
     family-names: Chaturvedi
     email: achaturvedi3@gsu.edu
     affiliation: >-
@@ -12,8 +11,7 @@ authors:
       Department of Physics and Astronomy, Georgia State
       University
     orcid: 'https://orcid.org/0009-0008-0451-4435'
-  - given-names: Mahir
-    name-particle: M
+  - given-names: Mahir M.
     family-names: Patel
     email: mpatel178@gsu.edu
     affiliation: >-
